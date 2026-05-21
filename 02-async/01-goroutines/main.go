@@ -1,5 +1,7 @@
 package main
 
+import "time"
+
 type User struct {
 	Email string
 }
@@ -41,14 +43,27 @@ func (h Handler) SignUp(u User) error {
 	}
 
 	// TODO: make it asynchronous
-	if err := h.newsletterClient.AddToNewsletter(u); err != nil {
-		return err
-	}
+	go func() {
+		for {
+			if err := h.newsletterClient.AddToNewsletter(u); err != nil {
+				time.Sleep(1 * time.Second)
+				continue
+			}
+			return
+		}
+
+	}()
 
 	// TODO: make it asynchronous
-	if err := h.notificationsClient.SendNotification(u); err != nil {
-		return err
-	}
+	go func() {
+		for {
+			if err := h.notificationsClient.SendNotification(u); err != nil {
+				time.Sleep(1 * time.Second)
+				continue
+			}
+			return
+		}
+	}()
 
 	return nil
 }
