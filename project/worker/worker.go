@@ -56,11 +56,13 @@ func (w *Worker) Run(ctx context.Context) {
 		case TaskIssueReceipt:
 			err := w.receiptsService.IssueReceipt(ctx, msg.TicketID)
 			if err != nil {
+				w.Send(msg)
 				slog.With("error", err).Error("failed to issue the receipt")
 			}
 		case TaskAppendToTracker:
 			err := w.spreadsheetsAPI.AppendRow(ctx, "tickets-to-print", []string{msg.TicketID})
 			if err != nil {
+				w.Send(msg)
 				slog.With("error", err).Error("failed to append to tracker")
 			}
 		}
