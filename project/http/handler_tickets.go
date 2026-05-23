@@ -2,9 +2,10 @@ package http
 
 import (
 	"net/http"
-	"tickets/worker"
 
 	"github.com/labstack/echo/v4"
+
+	"tickets/worker"
 )
 
 type ticketsConfirmationRequest struct {
@@ -19,7 +20,6 @@ func (h Handler) PostTicketsConfirmation(c echo.Context) error {
 	}
 
 	for _, ticket := range request.Tickets {
-
 		h.worker.Send(
 			worker.Message{
 				Task:     worker.TaskIssueReceipt,
@@ -28,7 +28,8 @@ func (h Handler) PostTicketsConfirmation(c echo.Context) error {
 			worker.Message{
 				Task:     worker.TaskAppendToTracker,
 				TicketID: ticket,
-			})
+			},
+		)
 	}
 
 	return c.NoContent(http.StatusOK)
