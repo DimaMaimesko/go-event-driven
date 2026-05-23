@@ -4,6 +4,7 @@ import (
 	"context"
 	"log/slog"
 	"os"
+	"tickets/worker"
 
 	"github.com/ThreeDotsLabs/go-event-driven/v2/common/clients"
 	"github.com/ThreeDotsLabs/go-event-driven/v2/common/log"
@@ -23,11 +24,14 @@ func main() {
 	spreadsheetsAPI := adapters.NewSpreadsheetsAPIClient(apiClients)
 	receiptsService := adapters.NewReceiptsServiceClient(apiClients)
 
+	w := worker.NewWorker(spreadsheetsAPI, receiptsService)
+	go w.Run(context.Background())
+
 	err = service.New(
-		spreadsheetsAPI,
-		receiptsService,
+		w,
 	).Run(context.Background())
 	if err != nil {
 		panic(err)
 	}
+
 }
