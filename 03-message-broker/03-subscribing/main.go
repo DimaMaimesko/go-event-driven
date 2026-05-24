@@ -10,8 +10,6 @@ import (
 	"github.com/redis/go-redis/v9"
 )
 
-const topic = "progress"
-
 func main() {
 	logger := watermill.NewSlogLogger(nil)
 
@@ -19,21 +17,20 @@ func main() {
 		Addr: os.Getenv("REDIS_ADDR"),
 	})
 
-	subscriber, err := redisstream.NewSubscriber(redisstream.SubscriberConfig{
+	sub, err := redisstream.NewSubscriber(redisstream.SubscriberConfig{
 		Client: rdb,
 	}, logger)
 	if err != nil {
 		panic(err)
 	}
 
-	messages, err := subscriber.Subscribe(context.Background(), topic)
+	messages, err := sub.Subscribe(context.Background(), "progress")
 	if err != nil {
 		panic(err)
 	}
 
 	for msg := range messages {
-		fmt.Println("Message ID:", msg.UUID, "-", string(msg.Payload))
+		fmt.Printf("Message ID: %v - %v%%\n", msg.UUID, string(msg.Payload))
 		msg.Ack()
 	}
-
 }
