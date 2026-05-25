@@ -4,36 +4,60 @@ import (
 	"context"
 	"errors"
 	stdHTTP "net/http"
-
-	"github.com/labstack/echo/v4"
+	"os"
+	"tickets/message"
 
 	ticketsHttp "tickets/http"
 	"tickets/worker"
+
+	"github.com/ThreeDotsLabs/watermill"
+	watermillMessage "github.com/ThreeDotsLabs/watermill/message"
+	"github.com/labstack/echo/v4"
 )
 
 type Service struct {
 	echoRouter *echo.Echo
-	worker     *worker.Worker
+	publisher  watermillMessage.Publisher
 }
 
 func New(
 	spreadsheetsAPI worker.SpreadsheetsAPI,
 	receiptsService worker.ReceiptsService,
 ) Service {
-	w := worker.NewWorker(spreadsheetsAPI, receiptsService)
+	logger := watermill.NewSlogLogger(nil)
+	redisClient := message.NewRedisClient(os.Getenv("REDIS_ADDR"))
 
-	echoRouter := ticketsHttp.NewHttpRouter(w)
+	publisher := message.NewRedisPublisher(redisClient, logger)
+
+	message.NewSubscriber(
+		redisClient,
+		logger,
+		"issue-receipt",
+		"receipt",
+		func(ctx context.Context, payload string) error {
+			return receiptsService.IssueReceipt(ctx, payload)
+		},
+	)
+
+	message.NewSubscriber(
+		redisClient,
+		logger,
+		"append-to-tracker",
+		"tracker",
+		func(ctx context.Context, payload string) error {
+			return spreadsheetsAPI.AppendRow(ctx, "tickets-to-print", []string{payload})
+		},
+	)
+
+	echoRouter := ticketsHttp.NewHttpRouter(publisher)
 
 	return Service{
 		echoRouter: echoRouter,
-		worker:     w,
+		publisher:  publisher,
 	}
 }
 
 func (s Service) Run(ctx context.Context) error {
-	go func() {
-		s.worker.Run(ctx)
-	}()
 
 	err := s.echoRouter.Start(":8080")
 	if err != nil && !errors.Is(err, stdHTTP.ErrServerClosed) {
