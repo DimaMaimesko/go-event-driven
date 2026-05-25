@@ -2,7 +2,7 @@ package message
 
 import (
 	"context"
-	"log/slog"
+	"fmt"
 
 	"github.com/ThreeDotsLabs/watermill"
 	"github.com/ThreeDotsLabs/watermill-redisstream/pkg/redisstream"
@@ -18,13 +18,14 @@ type ReceiptsService interface {
 	IssueReceipt(ctx context.Context, ticketID string) error
 }
 
-func NewHandlers(
+func NewWatermillRouter(
 	receiptsService ReceiptsService,
 	spreadsheetsAPI SpreadsheetsAPI,
 	rdb *redis.Client,
 	watermillLogger watermill.LoggerAdapter,
-	watermillRouter *message.Router,
-) {
+) *message.Router {
+	router := message.NewDefaultRouter(watermillLogger)
+
 	issueReceiptSub, err := redisstream.NewSubscriber(redisstream.SubscriberConfig{
 		Client:        rdb,
 		ConsumerGroup: "issue-receipt",
@@ -41,38 +42,32 @@ func NewHandlers(
 		panic(err)
 	}
 
-	watermillRouter.AddConsumerHandler(
-		"issue",
+	router.AddConsumerHandler(
+		"issue_receipt",
 		"issue-receipt",
 		issueReceiptSub,
 		func(msg *message.Message) error {
 			err := receiptsService.IssueReceipt(msg.Context(), string(msg.Payload))
 			if err != nil {
-				slog.With("error", err).Error("Error issuing receipt")
-				return err
+				return fmt.Errorf("failed to issue receipt: %w", err)
 			}
 
 			return nil
 		},
 	)
 
-	watermillRouter.AddConsumerHandler(
-		"append",
+	router.AddConsumerHandler(
+		"append_to_tracker",
 		"append-to-tracker",
 		appendToTrackerSub,
 		func(msg *message.Message) error {
-			err := spreadsheetsAPI.AppendRow(
+			return spreadsheetsAPI.AppendRow(
 				msg.Context(),
 				"tickets-to-print",
 				[]string{string(msg.Payload)},
 			)
-			if err != nil {
-				slog.With("error", err).Error("Error appending to tracker")
-				return err
-			}
-
-			return nil
 		},
 	)
 
+	return router
 }
