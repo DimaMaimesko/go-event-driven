@@ -28,11 +28,11 @@ func main() {
 	}
 
 	router.AddConsumerHandler(
-		"print-temperature",
+		"temperature",
 		"temperature-fahrenheit",
 		sub,
 		func(msg *message.Message) error {
-			fmt.Println("Temperature read:", string(msg.Payload))
+			fmt.Printf("Temperature read: %s\n", msg.Payload)
 			return nil
 		},
 	)
@@ -41,5 +41,4 @@ func main() {
 	if err != nil {
 		panic(err)
 	}
-
 }
