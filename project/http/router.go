@@ -6,11 +6,11 @@ import (
 	"github.com/labstack/echo/v4"
 )
 
-func NewHttpRouter(p message.Publisher) *echo.Echo {
+func NewHttpRouter(publisher message.Publisher) *echo.Echo {
 	e := libHttp.NewEcho()
 
 	handler := Handler{
-		publisher: p,
+		publisher: publisher,
 	}
 
 	e.POST("/tickets-confirmation", handler.PostTicketsConfirmation)

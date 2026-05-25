@@ -21,14 +21,17 @@ func (h Handler) PostTicketsConfirmation(c echo.Context) error {
 
 	for _, ticket := range request.Tickets {
 		msg := message.NewMessage(watermill.NewUUID(), []byte(ticket))
+
 		err = h.publisher.Publish("issue-receipt", msg)
 		if err != nil {
-			panic(err)
+			return err
 		}
-		
+
+		msg = message.NewMessage(watermill.NewUUID(), []byte(ticket))
+
 		err = h.publisher.Publish("append-to-tracker", msg)
 		if err != nil {
-			panic(err)
+			return err
 		}
 	}
 
