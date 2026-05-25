@@ -34,20 +34,19 @@ func main() {
 		panic(err)
 	}
 
-	// TODO: Add your handler here
 	router.AddHandler(
-		"temperature",
+		"celsius-to-fahrenheit",
 		"temperature-celsius",
 		sub,
 		"temperature-fahrenheit",
 		pub,
 		func(msg *message.Message) ([]*message.Message, error) {
-			tempFhr, err := celsiusToFahrenheit(string(msg.Payload))
+			newTemperature, err := celsiusToFahrenheit(string(msg.Payload))
 			if err != nil {
 				return nil, err
 			}
 
-			newMsg := message.NewMessage(watermill.NewUUID(), []byte(tempFhr))
+			newMsg := message.NewMessage(watermill.NewUUID(), []byte(newTemperature))
 			return []*message.Message{newMsg}, nil
 		},
 	)
