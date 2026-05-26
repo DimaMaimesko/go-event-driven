@@ -51,12 +51,22 @@ func NewWatermillRouter(
 		"issue-receipt",
 		issueReceiptSub,
 		func(msg *message.Message) error {
-			var payload entities.IssueReceiptRequest
+			ctx := msg.Context()
+
+			var payload entities.IssueReceiptPayload
 			err := json.Unmarshal(msg.Payload, &payload)
 			if err != nil {
 				return err
 			}
-			err = receiptsService.IssueReceipt(msg.Context(), payload)
+
+			slog.Info("Issuing receipt")
+
+			request := entities.IssueReceiptRequest{
+				TicketID: payload.TicketID,
+				Price:    payload.Price,
+			}
+
+			err = receiptsService.IssueReceipt(ctx, request)
 			if err != nil {
 				return fmt.Errorf("failed to issue receipt: %w", err)
 			}
