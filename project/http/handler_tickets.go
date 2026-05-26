@@ -32,7 +32,17 @@ func (h Handler) PostTicketsStatus(c echo.Context) error {
 
 	for _, ticket := range request.Tickets {
 		if ticket.Status == "confirmed" {
-			msg := message.NewMessage(watermill.NewUUID(), []byte(ticket.TicketID))
+			issueReceiptPayload := entities.IssueReceiptPayload{
+				TicketID: ticket.TicketID,
+				Price:    ticket.Price,
+			}
+
+			issueReceiptJSON, err := json.Marshal(issueReceiptPayload)
+			if err != nil {
+				return err
+			}
+
+			msg := message.NewMessage(watermill.NewUUID(), issueReceiptJSON)
 			err = h.publisher.Publish("issue-receipt", msg)
 			if err != nil {
 				return err
