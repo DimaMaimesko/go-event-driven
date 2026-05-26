@@ -36,9 +36,8 @@ func NewPublisher(pub message.Publisher) Publisher {
 }
 
 func (p Publisher) PublishProductOutOfStock(productID string) error {
-	event_name := "ProductOutOfStock"
 	event := ProductOutOfStock{
-		Header:    NewMessageHeader(event_name),
+		Header:    newMessageHeader("ProductOutOfStock"),
 		ProductID: productID,
 	}
 
@@ -53,9 +52,8 @@ func (p Publisher) PublishProductOutOfStock(productID string) error {
 }
 
 func (p Publisher) PublishProductBackInStock(productID string, quantity int) error {
-	event_name := "ProductBackInStock"
 	event := ProductBackInStock{
-		Header:    NewMessageHeader(event_name),
+		Header:    newMessageHeader("ProductBackInStock"),
 		ProductID: productID,
 		Quantity:  quantity,
 	}
@@ -70,10 +68,10 @@ func (p Publisher) PublishProductBackInStock(productID string, quantity int) err
 	return p.pub.Publish("product-updates", msg)
 }
 
-func NewMessageHeader(eventName string) MessageHeader {
+func newMessageHeader(eventName string) MessageHeader {
 	return MessageHeader{
 		ID:         watermill.NewUUID(),
 		EventName:  eventName,
-		OccurredAt: time.Now().Format(time.RFC3339),
+		OccurredAt: time.Now().UTC().Format(time.RFC3339),
 	}
 }
