@@ -11,15 +11,15 @@ import (
 func NewHttpRouter(publisher message.Publisher) *echo.Echo {
 	e := libHttp.NewEcho()
 
+	e.GET("/health", func(c echo.Context) error {
+		return c.String(http.StatusOK, "ok")
+	})
+
 	handler := Handler{
 		publisher: publisher,
 	}
 
 	e.POST("/tickets-confirmation", handler.PostTicketsConfirmation)
-
-	e.GET("/health", func(c echo.Context) error {
-		return c.String(http.StatusOK, "ok")
-	})
 
 	return e
 }

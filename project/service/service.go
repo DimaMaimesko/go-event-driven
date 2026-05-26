@@ -56,6 +56,7 @@ func (s Service) Run(ctx context.Context) error {
 	})
 
 	errgrp.Go(func() error {
+		// we don't want to start HTTP server before Watermill router (so service won't be healthy before it's ready)
 		<-s.watermillRouter.Running()
 
 		err := s.echoRouter.Start(":8080")
