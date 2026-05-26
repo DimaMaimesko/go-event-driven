@@ -5,7 +5,6 @@ import (
 	"errors"
 	"log/slog"
 	stdHTTP "net/http"
-	"time"
 
 	"github.com/ThreeDotsLabs/watermill"
 	watermillMessage "github.com/ThreeDotsLabs/watermill/message"
@@ -50,42 +49,26 @@ func New(
 }
 
 func (s Service) Run(ctx context.Context) error {
-	g, ctx := errgroup.WithContext(ctx)
+	errgrp, ctx := errgroup.WithContext(ctx)
 
-	// Watermill router: stops gracefully when ctx is cancelled.
-	g.Go(func() error {
+	errgrp.Go(func() error {
 		return s.watermillRouter.Run(ctx)
 	})
 
-	// Echo HTTP server.
-	g.Go(func() error {
-		// Wait until the Watermill router has fully started before accepting HTTP traffic,
-		// so handlers that publish via Watermill are ready.
-		<-s.watermillRouter.Running()
-
+	errgrp.Go(func() error {
 		err := s.echoRouter.Start(":8080")
+
 		if err != nil && !errors.Is(err, stdHTTP.ErrServerClosed) {
 			return err
 		}
+
 		return nil
 	})
 
-	// Shutdown goroutine: triggers Echo shutdown when ctx is cancelled
-	// (Watermill router shuts down on its own via ctx).
-	g.Go(func() error {
+	errgrp.Go(func() error {
 		<-ctx.Done()
-
-		shutdownCtx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
-		defer cancel()
-
-		if err := s.echoRouter.Shutdown(shutdownCtx); err != nil {
-			return err
-		}
-		return nil
+		return s.echoRouter.Shutdown(context.Background())
 	})
 
-	if err := g.Wait(); err != nil && !errors.Is(err, context.Canceled) {
-		return err
-	}
-	return nil
+	return errgrp.Wait()
 }
