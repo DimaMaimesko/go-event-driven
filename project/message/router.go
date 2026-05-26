@@ -2,7 +2,9 @@ package message
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
+	"tickets/entities"
 
 	"github.com/ThreeDotsLabs/watermill"
 	"github.com/ThreeDotsLabs/watermill-redisstream/pkg/redisstream"
@@ -61,10 +63,15 @@ func NewWatermillRouter(
 		"append-to-tracker",
 		appendToTrackerSub,
 		func(msg *message.Message) error {
+			var payload entities.AppendToTrackerPayload
+			err := json.Unmarshal(msg.Payload, &payload)
+			if err != nil {
+				return nil
+			}
 			return spreadsheetsAPI.AppendRow(
 				msg.Context(),
 				"tickets-to-print",
-				[]string{string(msg.Payload)},
+				[]string{payload.TicketID, payload.CustomerEmail, payload.Price.Amount, payload.Price.Currency},
 			)
 		},
 	)
