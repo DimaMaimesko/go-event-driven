@@ -4,12 +4,14 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"tickets/entities"
+	"log/slog"
 
 	"github.com/ThreeDotsLabs/watermill"
 	"github.com/ThreeDotsLabs/watermill-redisstream/pkg/redisstream"
 	"github.com/ThreeDotsLabs/watermill/message"
 	"github.com/redis/go-redis/v9"
+
+	"tickets/entities"
 )
 
 type SpreadsheetsAPI interface {
@@ -63,13 +65,18 @@ func NewWatermillRouter(
 		"append-to-tracker",
 		appendToTrackerSub,
 		func(msg *message.Message) error {
+			ctx := msg.Context()
+
 			var payload entities.AppendToTrackerPayload
 			err := json.Unmarshal(msg.Payload, &payload)
 			if err != nil {
-				return nil
+				return err
 			}
+
+			slog.Info("Appending ticket to the tracker")
+
 			return spreadsheetsAPI.AppendRow(
-				msg.Context(),
+				ctx,
 				"tickets-to-print",
 				[]string{payload.TicketID, payload.CustomerEmail, payload.Price.Amount, payload.Price.Currency},
 			)

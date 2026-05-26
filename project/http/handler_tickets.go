@@ -33,7 +33,6 @@ func (h Handler) PostTicketsStatus(c echo.Context) error {
 	for _, ticket := range request.Tickets {
 		if ticket.Status == "confirmed" {
 			msg := message.NewMessage(watermill.NewUUID(), []byte(ticket.TicketID))
-
 			err = h.publisher.Publish("issue-receipt", msg)
 			if err != nil {
 				return err
@@ -44,11 +43,13 @@ func (h Handler) PostTicketsStatus(c echo.Context) error {
 				CustomerEmail: ticket.CustomerEmail,
 				Price:         ticket.Price,
 			}
-			payload, err := json.Marshal(appendToTrackerPayload)
+
+			appendToTrackerJSON, err := json.Marshal(appendToTrackerPayload)
 			if err != nil {
 				return err
 			}
-			msg = message.NewMessage(watermill.NewUUID(), payload)
+
+			msg = message.NewMessage(watermill.NewUUID(), appendToTrackerJSON)
 			err = h.publisher.Publish("append-to-tracker", msg)
 			if err != nil {
 				return err
