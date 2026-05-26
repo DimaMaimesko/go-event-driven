@@ -1,12 +1,14 @@
 package http
 
 import (
+	"fmt"
 	"net/http"
-	"tickets/entities"
 
 	"github.com/ThreeDotsLabs/watermill"
 	"github.com/ThreeDotsLabs/watermill/message"
 	"github.com/labstack/echo/v4"
+
+	"tickets/entities"
 )
 
 type TicketsStatusRequest struct {
@@ -28,18 +30,20 @@ func (h Handler) PostTicketsStatus(c echo.Context) error {
 	}
 
 	for _, ticket := range request.Tickets {
-		msg := message.NewMessage(watermill.NewUUID(), []byte(ticket.TicketID))
+		if ticket.Status == "confirmed" {
+			msg := message.NewMessage(watermill.NewUUID(), []byte(ticket.TicketID))
 
-		err = h.publisher.Publish("issue-receipt", msg)
-		if err != nil {
-			return err
-		}
+			err = h.publisher.Publish("issue-receipt", msg)
+			if err != nil {
+				return err
+			}
 
-		msg = message.NewMessage(watermill.NewUUID(), []byte(ticket.TicketID))
-
-		err = h.publisher.Publish("append-to-tracker", msg)
-		if err != nil {
-			return err
+			err = h.publisher.Publish("append-to-tracker", msg)
+			if err != nil {
+				return err
+			}
+		} else {
+			return fmt.Errorf("unknown ticket status: %s", ticket.Status)
 		}
 	}
 
