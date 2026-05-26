@@ -46,29 +46,29 @@ func main() {
 	}
 
 	router.AddHandler(
-		"payments",
+		"payment-completed",
 		"payment-completed",
 		sub,
 		"order-confirmed",
 		pub,
 		func(msg *message.Message) ([]*message.Message, error) {
-			var payload PaymentCompleted
-
-			err := json.Unmarshal(msg.Payload, &payload)
+			var event PaymentCompleted
+			err := json.Unmarshal(msg.Payload, &event)
 			if err != nil {
 				return nil, err
 			}
 
-			event := OrderConfirmed{
-				OrderID:     payload.OrderID,
-				ConfirmedAt: payload.CompletedAt,
+			newEvent := OrderConfirmed{
+				OrderID:     event.OrderID,
+				ConfirmedAt: event.CompletedAt,
 			}
-			p, err := json.Marshal(event)
+
+			payload, err := json.Marshal(newEvent)
 			if err != nil {
 				return nil, err
 			}
-			newMsg := message.NewMessage(watermill.NewUUID(), p)
 
+			newMsg := message.NewMessage(watermill.NewUUID(), payload)
 			return []*message.Message{newMsg}, nil
 		},
 	)
