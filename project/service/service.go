@@ -56,6 +56,8 @@ func (s Service) Run(ctx context.Context) error {
 	})
 
 	errgrp.Go(func() error {
+		<-s.watermillRouter.Running()
+
 		err := s.echoRouter.Start(":8080")
 
 		if err != nil && !errors.Is(err, stdHTTP.ErrServerClosed) {
