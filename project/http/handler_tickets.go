@@ -50,7 +50,6 @@ func (h Handler) PostTicketsStatus(c echo.Context) error {
 			if err != nil {
 				return err
 			}
-
 		} else if ticket.Status == "canceled" {
 			event := entities.TicketBookingCanceled{
 				Header:        entities.NewMessageHeader(),
@@ -70,7 +69,6 @@ func (h Handler) PostTicketsStatus(c echo.Context) error {
 			if err != nil {
 				return err
 			}
-
 		} else {
 			return fmt.Errorf("unknown ticket status: %s", ticket.Status)
 		}
