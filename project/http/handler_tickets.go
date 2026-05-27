@@ -10,6 +10,7 @@ import (
 	"github.com/labstack/echo/v4"
 
 	"tickets/entities"
+	"tickets/entities/events"
 )
 
 type TicketsStatusRequest struct {
@@ -32,36 +33,20 @@ func (h Handler) PostTicketsStatus(c echo.Context) error {
 
 	for _, ticket := range request.Tickets {
 		if ticket.Status == "confirmed" {
-			issueReceiptPayload := entities.IssueReceiptPayload{
-				TicketID: ticket.TicketID,
-				Price:    ticket.Price,
-			}
-
-			issueReceiptJSON, err := json.Marshal(issueReceiptPayload)
-			if err != nil {
-				return err
-			}
-
-			msg := message.NewMessage(watermill.NewUUID(), issueReceiptJSON)
-			err = h.publisher.Publish("issue-receipt", msg)
-			if err != nil {
-				return err
-			}
-
-			appendToTrackerPayload := entities.AppendToTrackerPayload{
+			ticketBookingConfirmedEvent := events.TicketBookingConfirmed{
+				Header:        events.NewMessageHeader(),
 				TicketID:      ticket.TicketID,
 				CustomerEmail: ticket.CustomerEmail,
 				Price:         ticket.Price,
 			}
 
-			appendToTrackerJSON, err := json.Marshal(appendToTrackerPayload)
+			payload, err := json.Marshal(ticketBookingConfirmedEvent)
 			if err != nil {
 				return err
 			}
 
-			msg = message.NewMessage(watermill.NewUUID(), appendToTrackerJSON)
-			err = h.publisher.Publish("append-to-tracker", msg)
-			if err != nil {
+			msg := message.NewMessage(watermill.NewUUID(), payload)
+			if err := h.publisher.Publish("TicketBookingConfirmed", msg); err != nil {
 				return err
 			}
 		} else {

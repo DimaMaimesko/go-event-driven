@@ -12,6 +12,7 @@ import (
 	"github.com/redis/go-redis/v9"
 
 	"tickets/entities"
+	"tickets/entities/events"
 )
 
 type SpreadsheetsAPI interface {
@@ -48,26 +49,24 @@ func NewWatermillRouter(
 
 	router.AddConsumerHandler(
 		"issue_receipt",
-		"issue-receipt",
+		"TicketBookingConfirmed",
 		issueReceiptSub,
 		func(msg *message.Message) error {
 			ctx := msg.Context()
 
-			var payload entities.IssueReceiptPayload
-			err := json.Unmarshal(msg.Payload, &payload)
-			if err != nil {
+			var event events.TicketBookingConfirmed
+			if err := json.Unmarshal(msg.Payload, &event); err != nil {
 				return err
 			}
 
 			slog.Info("Issuing receipt")
 
 			request := entities.IssueReceiptRequest{
-				TicketID: payload.TicketID,
-				Price:    payload.Price,
+				TicketID: event.TicketID,
+				Price:    event.Price,
 			}
 
-			err = receiptsService.IssueReceipt(ctx, request)
-			if err != nil {
+			if err := receiptsService.IssueReceipt(ctx, request); err != nil {
 				return fmt.Errorf("failed to issue receipt: %w", err)
 			}
 
@@ -77,14 +76,13 @@ func NewWatermillRouter(
 
 	router.AddConsumerHandler(
 		"append_to_tracker",
-		"append-to-tracker",
+		"TicketBookingConfirmed",
 		appendToTrackerSub,
 		func(msg *message.Message) error {
 			ctx := msg.Context()
 
-			var payload entities.AppendToTrackerPayload
-			err := json.Unmarshal(msg.Payload, &payload)
-			if err != nil {
+			var event events.TicketBookingConfirmed
+			if err := json.Unmarshal(msg.Payload, &event); err != nil {
 				return err
 			}
 
@@ -93,7 +91,7 @@ func NewWatermillRouter(
 			return spreadsheetsAPI.AppendRow(
 				ctx,
 				"tickets-to-print",
-				[]string{payload.TicketID, payload.CustomerEmail, payload.Price.Amount, payload.Price.Currency},
+				[]string{event.TicketID, event.CustomerEmail, event.Price.Amount, event.Price.Currency},
 			)
 		},
 	)
