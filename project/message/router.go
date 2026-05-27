@@ -2,6 +2,7 @@ package message
 
 import (
 	"encoding/json"
+	"log/slog"
 
 	"github.com/ThreeDotsLabs/watermill"
 	"github.com/ThreeDotsLabs/watermill-redisstream/pkg/redisstream"
@@ -14,6 +15,8 @@ import (
 
 func NewWatermillRouter(receiptsService event.ReceiptsService, spreadsheetsAPI event.SpreadsheetsAPI, rdb *redis.Client, watermillLogger watermill.LoggerAdapter) *message.Router {
 	router := message.NewDefaultRouter(watermillLogger)
+
+	router.AddMiddleware(LoggingMiddleware)
 
 	handler := event.NewHandler(spreadsheetsAPI, receiptsService)
 
@@ -86,4 +89,19 @@ func NewWatermillRouter(receiptsService event.ReceiptsService, spreadsheetsAPI e
 	)
 
 	return router
+}
+
+func LoggingMiddleware(next message.HandlerFunc) message.HandlerFunc {
+	return func(msg *message.Message) ([]*message.Message, error) {
+		logger := slog.With(
+			"message_id", msg.UUID,
+			"payload", string(msg.Payload),
+			"metadata", msg.Metadata,
+			"handler", message.HandlerNameFromCtx(msg.Context()),
+		)
+
+		logger.Info("Handling a message")
+
+		return next(msg)
+	}
 }
