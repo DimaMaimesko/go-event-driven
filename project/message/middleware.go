@@ -21,8 +21,8 @@ func useMiddlewares(router *message.Router) {
 				reqCorrelationID = shortuuid.New()
 			}
 
-			ctx = log.ContextWithCorrelationID(ctx, reqCorrelationID)
 			ctx = log.ToContext(ctx, slog.With("correlation_id", reqCorrelationID))
+			ctx = log.ContextWithCorrelationID(ctx, reqCorrelationID)
 
 			msg.SetContext(ctx)
 
