@@ -39,9 +39,15 @@ func useMiddlewares(router *message.Router) {
 				"handler", message.HandlerNameFromCtx(msg.Context()),
 			)
 
-			logger.Info("Handling a message")
+			msgs, err := next(msg)
+			if err != nil {
+				logger.With(
+					"error", err,
+					"message_id", msg.UUID,
+				).Error("Error while handling a message")
+			}
 
-			return next(msg)
+			return msgs, err
 		}
 	})
 }
