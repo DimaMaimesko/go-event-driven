@@ -33,6 +33,14 @@ func NewWatermillRouter(receiptsService event.ReceiptsService, spreadsheetsAPI e
 		panic(err)
 	}
 
+	refundSub, err := redisstream.NewSubscriber(redisstream.SubscriberConfig{
+		Client:        rdb,
+		ConsumerGroup: "refund",
+	}, watermillLogger)
+	if err != nil {
+		panic(err)
+	}
+
 	router.AddConsumerHandler(
 		"issue_receipt",
 		"TicketBookingConfirmed",
@@ -60,6 +68,21 @@ func NewWatermillRouter(receiptsService event.ReceiptsService, spreadsheetsAPI e
 			}
 
 			return handler.AppendToTracker(msg.Context(), event)
+		},
+	)
+
+	router.AddConsumerHandler(
+		"refund",
+		"TicketBookingCanceled",
+		refundSub,
+		func(msg *message.Message) error {
+			var event entities.TicketBookingCanceled
+			err := json.Unmarshal(msg.Payload, &event)
+			if err != nil {
+				return err
+			}
+
+			return handler.AppendToRefundTracker(msg.Context(), event)
 		},
 	)
 
