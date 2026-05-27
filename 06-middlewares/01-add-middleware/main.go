@@ -50,6 +50,8 @@ func main() {
 	logger := watermill.NewSlogLogger(nil)
 	router := message.NewDefaultRouter(logger)
 
+	router.AddMiddleware(middleware.CorrelationID)
+
 	rbd := redis.NewClient(&redis.Options{
 		Addr: os.Getenv("REDIS_ADDR"),
 	})
@@ -154,8 +156,6 @@ func main() {
 	ctx, cancel := signal.NotifyContext(ctx, os.Interrupt)
 	defer cancel()
 
-	router.AddMiddleware(middleware.CorrelationID)
-
 	go func() {
 		err := router.Run(ctx)
 		if err != nil {
@@ -201,7 +201,6 @@ func main() {
 		}
 
 		msg := message.NewMessage(uuid.NewString(), payload)
-
 		middleware.SetCorrelationID(correlationID, msg)
 
 		err = pub.Publish("player_joined", msg)
