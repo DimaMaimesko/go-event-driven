@@ -2,6 +2,7 @@ package message
 
 import (
 	"log/slog"
+	"time"
 
 	"github.com/ThreeDotsLabs/go-event-driven/v2/common/log"
 	"github.com/ThreeDotsLabs/watermill/message"
@@ -49,4 +50,13 @@ func useMiddlewares(router *message.Router) {
 			return msgs, err
 		}
 	})
+
+	retry := middleware.Retry{
+		MaxRetries:      10,
+		InitialInterval: time.Millisecond * 100,
+		MaxInterval:     time.Second,
+		Multiplier:      2,
+		Logger:          nil,
+	}
+	router.AddMiddleware(retry.Middleware)
 }
