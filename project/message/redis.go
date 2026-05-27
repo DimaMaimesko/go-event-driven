@@ -8,7 +8,6 @@ import (
 )
 
 func NewRedisPublisher(rdb *redis.Client, watermillLogger watermill.LoggerAdapter) message.Publisher {
-	var pub message.Publisher
 	pub, err := redisstream.NewPublisher(redisstream.PublisherConfig{
 		Client: rdb,
 	}, watermillLogger)

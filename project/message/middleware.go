@@ -6,17 +6,26 @@ import (
 	"github.com/ThreeDotsLabs/go-event-driven/v2/common/log"
 	"github.com/ThreeDotsLabs/watermill/message"
 	"github.com/ThreeDotsLabs/watermill/message/router/middleware"
+	"github.com/lithammer/shortuuid/v3"
 )
 
 func useMiddlewares(router *message.Router) {
 	router.AddMiddleware(middleware.Recoverer)
 
-	router.AddMiddleware(func(next message.HandlerFunc) message.HandlerFunc {
-		return func(msg *message.Message) ([]*message.Message, error) {
-			ctx := log.ContextWithCorrelationID(msg.Context(), msg.Metadata.Get("correlation_id"))
+	router.AddMiddleware(func(h message.HandlerFunc) message.HandlerFunc {
+		return func(msg *message.Message) (events []*message.Message, err error) {
+			ctx := msg.Context()
+
+			reqCorrelationID := msg.Metadata.Get("correlation_id")
+			if reqCorrelationID == "" {
+				reqCorrelationID = shortuuid.New()
+			}
+
+			ctx = log.ContextWithCorrelationID(ctx, reqCorrelationID)
+
 			msg.SetContext(ctx)
 
-			return next(msg)
+			return h(msg)
 		}
 	})
 

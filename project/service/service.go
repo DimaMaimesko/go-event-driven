@@ -29,8 +29,7 @@ func New(
 ) Service {
 	watermillLogger := watermill.NewSlogLogger(slog.Default())
 
-	var redisPublisher watermillMessage.Publisher
-	redisPublisher = message.NewRedisPublisher(redisClient, watermillLogger)
+	redisPublisher := message.NewRedisPublisher(redisClient, watermillLogger)
 
 	watermillRouter := message.NewWatermillRouter(
 		receiptsService,
