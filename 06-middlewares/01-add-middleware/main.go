@@ -15,6 +15,7 @@ import (
 	"github.com/ThreeDotsLabs/watermill"
 	"github.com/ThreeDotsLabs/watermill-redisstream/pkg/redisstream"
 	"github.com/ThreeDotsLabs/watermill/message"
+	"github.com/ThreeDotsLabs/watermill/message/router/middleware"
 	"github.com/google/uuid"
 	"github.com/labstack/echo/v4"
 	"github.com/redis/go-redis/v9"
@@ -138,8 +139,7 @@ func main() {
 				return err
 			}
 
-			// TODO
-			correlationID := ""
+			correlationID := middleware.MessageCorrelationID(msg)
 
 			err = client.CreateTeamScoreboard(event.ID, correlationID)
 			if err != nil {
@@ -153,6 +153,8 @@ func main() {
 	ctx := context.Background()
 	ctx, cancel := signal.NotifyContext(ctx, os.Interrupt)
 	defer cancel()
+
+	router.AddMiddleware(middleware.CorrelationID)
 
 	go func() {
 		err := router.Run(ctx)
@@ -193,11 +195,14 @@ func main() {
 			return err
 		}
 
-		// TODO
 		correlationID := c.Request().Header.Get("Correlation-ID")
-		_ = correlationID
+		if correlationID == "" {
+			correlationID = uuid.NewString()
+		}
 
 		msg := message.NewMessage(uuid.NewString(), payload)
+
+		middleware.SetCorrelationID(correlationID, msg)
 
 		err = pub.Publish("player_joined", msg)
 		if err != nil {
