@@ -17,7 +17,7 @@ func NewWatermillRouter(receiptsService event.ReceiptsService, spreadsheetsAPI e
 
 	handler := event.NewHandler(spreadsheetsAPI, receiptsService)
 
-	useMiddlewares(router)
+	useMiddlewares(router, watermillLogger)
 
 	issueReceiptSub, err := redisstream.NewSubscriber(redisstream.SubscriberConfig{
 		Client:        rdb,
