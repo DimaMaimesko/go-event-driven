@@ -10,7 +10,6 @@ import (
 	"github.com/labstack/echo/v4"
 
 	"tickets/entities"
-	"tickets/entities/events"
 )
 
 type TicketsStatusRequest struct {
@@ -33,20 +32,22 @@ func (h Handler) PostTicketsStatus(c echo.Context) error {
 
 	for _, ticket := range request.Tickets {
 		if ticket.Status == "confirmed" {
-			ticketBookingConfirmedEvent := events.TicketBookingConfirmed{
-				Header:        events.NewMessageHeader(),
+			event := entities.TicketBookingConfirmed{
+				Header:        entities.NewMessageHeader(),
 				TicketID:      ticket.TicketID,
 				CustomerEmail: ticket.CustomerEmail,
 				Price:         ticket.Price,
 			}
 
-			payload, err := json.Marshal(ticketBookingConfirmedEvent)
+			payload, err := json.Marshal(event)
 			if err != nil {
 				return err
 			}
 
 			msg := message.NewMessage(watermill.NewUUID(), payload)
-			if err := h.publisher.Publish("TicketBookingConfirmed", msg); err != nil {
+
+			err = h.publisher.Publish("TicketBookingConfirmed", msg)
+			if err != nil {
 				return err
 			}
 		} else {

@@ -14,6 +14,7 @@ import (
 
 	ticketsHttp "tickets/http"
 	"tickets/message"
+	"tickets/message/event"
 )
 
 type Service struct {
@@ -23,8 +24,8 @@ type Service struct {
 
 func New(
 	redisClient *redis.Client,
-	spreadsheetsAPI message.SpreadsheetsAPI,
-	receiptsService message.ReceiptsService,
+	spreadsheetsAPI event.SpreadsheetsAPI,
+	receiptsService event.ReceiptsService,
 ) Service {
 	watermillLogger := watermill.NewSlogLogger(slog.Default())
 
