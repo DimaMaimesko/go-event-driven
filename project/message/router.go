@@ -3,7 +3,6 @@ package message
 import (
 	"encoding/json"
 
-	"github.com/ThreeDotsLabs/go-event-driven/v2/common/log"
 	"github.com/ThreeDotsLabs/watermill"
 	"github.com/ThreeDotsLabs/watermill-redisstream/pkg/redisstream"
 	"github.com/ThreeDotsLabs/watermill/message"
@@ -13,24 +12,7 @@ import (
 	"tickets/message/event"
 )
 
-// skipIfWrongType returns true if the message's "type" metadata is set and
-// does not match the expected event type. Such messages are skipped and acked.
-func skipIfWrongType(msg *message.Message, expectedType string) bool {
-	msgType := msg.Metadata.Get("type")
-	if msgType == "" {
-		// No type metadata — accept as-is (backward compatible).
-		return false
-	}
-	if msgType != expectedType {
-		log.FromContext(msg.Context()).With(
-			"message_id", msg.UUID,
-			"expected_type", expectedType,
-			"actual_type", msgType,
-		).Info("Skipping message with mismatched type metadata")
-		return true
-	}
-	return false
-}
+const brokenMessageID = "2beaf5bc-d5e4-4653-b075-2b36bbf28949"
 
 func NewWatermillRouter(receiptsService event.ReceiptsService, spreadsheetsAPI event.SpreadsheetsAPI, rdb *redis.Client, watermillLogger watermill.LoggerAdapter) *message.Router {
 	router := message.NewDefaultRouter(watermillLogger)
@@ -68,7 +50,15 @@ func NewWatermillRouter(receiptsService event.ReceiptsService, spreadsheetsAPI e
 		"TicketBookingConfirmed",
 		issueReceiptSub,
 		func(msg *message.Message) error {
-			if skipIfWrongType(msg, "TicketBookingConfirmed") {
+			// Fixing a malformed JSON message
+			// TODO: Remove once fixed
+			if string(msg.UUID) == brokenMessageID {
+				return nil
+			}
+
+			// Fixing an incorrect message type
+			// TODO: Remove once fixed
+			if msg.Metadata.Get("type") != "TicketBookingConfirmed" {
 				return nil
 			}
 
@@ -87,7 +77,15 @@ func NewWatermillRouter(receiptsService event.ReceiptsService, spreadsheetsAPI e
 		"TicketBookingConfirmed",
 		appendToTrackerSub,
 		func(msg *message.Message) error {
-			if skipIfWrongType(msg, "TicketBookingConfirmed") {
+			// Fixing a malformed JSON message
+			// TODO: Remove once fixed
+			if string(msg.UUID) == brokenMessageID {
+				return nil
+			}
+
+			// Fixing an incorrect message type
+			// TODO: Remove once fixed
+			if msg.Metadata.Get("type") != "TicketBookingConfirmed" {
 				return nil
 			}
 
@@ -106,7 +104,9 @@ func NewWatermillRouter(receiptsService event.ReceiptsService, spreadsheetsAPI e
 		"TicketBookingCanceled",
 		cancelTicketSub,
 		func(msg *message.Message) error {
-			if skipIfWrongType(msg, "TicketBookingCanceled") {
+			// Fixing an incorrect message type
+			// TODO: Remove once fixed
+			if msg.Metadata.Get("type") != "TicketBookingCanceled" {
 				return nil
 			}
 

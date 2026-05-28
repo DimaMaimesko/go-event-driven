@@ -59,34 +59,4 @@ func useMiddlewares(router *message.Router, watermillLogger watermill.LoggerAdap
 			return msgs, err
 		}
 	})
-
-	router.AddMiddleware(func(next message.HandlerFunc) message.HandlerFunc {
-		return func(msg *message.Message) ([]*message.Message, error) {
-			if msg.UUID == "5f810ce3-222b-4626-bc04-cbfb460c98c7" {
-				logger := log.FromContext(msg.Context()).With(
-					"message_id", msg.UUID,
-					"payload", string(msg.Payload),
-					"metadata", msg.Metadata,
-					"handler", message.HandlerNameFromCtx(msg.Context()),
-				)
-				logger.Error("Error message", msg.UUID)
-				return nil, nil
-			}
-			return next(msg)
-		}
-	})
-
-	// Skip a known malformed message (invalid JSON payload published
-	// to TicketBookingConfirmed). We ack it by returning no error.
-	router.AddMiddleware(func(next message.HandlerFunc) message.HandlerFunc {
-		return func(msg *message.Message) ([]*message.Message, error) {
-			if msg.UUID == "2beaf5bc-d5e4-4653-b075-2b36bbf28949" {
-				log.FromContext(msg.Context()).With(
-					"message_id", msg.UUID,
-				).Info("Skipping known malformed message")
-				return nil, nil
-			}
-			return next(msg)
-		}
-	})
 }

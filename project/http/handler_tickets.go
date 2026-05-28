@@ -46,34 +46,12 @@ func (h Handler) PostTicketsStatus(c echo.Context) error {
 
 			msg := message.NewMessage(watermill.NewUUID(), payload)
 			msg.Metadata.Set("correlation_id", c.Request().Header.Get("Correlation-ID"))
-
-			err = h.publisher.Publish("TicketBookingConfirmed", msg)
-			if err != nil {
-				return err
-			}
-
-			//publish malformed message
-			eventMalformed := entities.TicketBookingConfirmed{
-				Header:        entities.NewMessageHeader(),
-				TicketID:      ticket.TicketID,
-				CustomerEmail: "dededed",
-				Price:         ticket.Price,
-			}
-
-			Malformed, err := json.Marshal(eventMalformed)
-			if err != nil {
-				return err
-			}
-
-			msg = message.NewMessage("2beaf5bc-d5e4-4653-b075-2b36bbf28949", Malformed)
-			msg.Metadata.Set("correlation_id", c.Request().Header.Get("Correlation-ID"))
 			msg.Metadata.Set("type", "TicketBookingConfirmed")
 
 			err = h.publisher.Publish("TicketBookingConfirmed", msg)
 			if err != nil {
 				return err
 			}
-
 		} else if ticket.Status == "canceled" {
 			event := entities.TicketBookingCanceled{
 				Header:        entities.NewMessageHeader(),
@@ -89,6 +67,7 @@ func (h Handler) PostTicketsStatus(c echo.Context) error {
 
 			msg := message.NewMessage(watermill.NewUUID(), payload)
 			msg.Metadata.Set("correlation_id", c.Request().Header.Get("Correlation-ID"))
+			msg.Metadata.Set("type", "TicketBookingCanceled")
 
 			err = h.publisher.Publish("TicketBookingCanceled", msg)
 			if err != nil {
