@@ -5,24 +5,24 @@ import (
 	"net/http"
 	"os"
 	"testing"
-	"tickets/adapters"
-	"tickets/message"
-	"tickets/service"
 	"time"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+
+	"tickets/adapters"
+	"tickets/message"
+	"tickets/service"
 )
 
 func TestComponent(t *testing.T) {
-	// place for your tests!
 	redisClient := message.NewRedisClient(os.Getenv("REDIS_ADDR"))
 	defer redisClient.Close()
 
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
 
-	spreadsheetsAPI := &adapters.SpreadsheetServiceStub{}
+	spreadsheetsAPI := &adapters.SpreadsheetsAPIStub{}
 	receiptsService := &adapters.ReceiptsServiceStub{}
 
 	go func() {
@@ -31,8 +31,7 @@ func TestComponent(t *testing.T) {
 			spreadsheetsAPI,
 			receiptsService,
 		)
-		err := svc.Run(ctx)
-		assert.NoError(t, err)
+		assert.NoError(t, svc.Run(ctx))
 	}()
 
 	waitForHttpServer(t)

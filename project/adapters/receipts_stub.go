@@ -3,6 +3,7 @@ package adapters
 import (
 	"context"
 	"sync"
+
 	"tickets/entities"
 )
 
@@ -12,11 +13,11 @@ type ReceiptsServiceStub struct {
 	IssuedReceipts []entities.IssueReceiptRequest
 }
 
-func (s *ReceiptsServiceStub) IssueReceipt(ctx context.Context, request entities.IssueReceiptRequest) error {
-	s.lock.Lock()
-	defer s.lock.Unlock()
+func (c *ReceiptsServiceStub) IssueReceipt(ctx context.Context, request entities.IssueReceiptRequest) error {
+	c.lock.Lock()
+	defer c.lock.Unlock()
 
-	s.IssuedReceipts = append(s.IssuedReceipts, request)
+	c.IssuedReceipts = append(c.IssuedReceipts, request)
 
 	return nil
 }
