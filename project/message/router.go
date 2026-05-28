@@ -50,22 +50,26 @@ func NewWatermillRouter(receiptsService event.ReceiptsService, spreadsheetsAPI e
 		"TicketBookingConfirmed",
 		issueReceiptSub,
 		func(msg *message.Message) error {
-			// Fixing a malformed JSON message
-			// TODO: Remove once fixed
-			if string(msg.UUID) == brokenMessageID {
-				return nil
-			}
-
-			// Fixing an incorrect message type
-			// TODO: Remove once fixed
-			if msg.Metadata.Get("type") != "TicketBookingConfirmed" {
-				return nil
-			}
+			//// Fixing a malformed JSON message
+			//// TODO: Remove once fixed
+			//if string(msg.UUID) == brokenMessageID {
+			//	return nil
+			//}
+			//
+			//// Fixing an incorrect message type
+			//// TODO: Remove once fixed
+			//if msg.Metadata.Get("type") != "TicketBookingConfirmed" {
+			//	return nil
+			//}
 
 			var event entities.TicketBookingConfirmed
 			err := json.Unmarshal(msg.Payload, &event)
 			if err != nil {
 				return err
+			}
+
+			if event.Price.Currency == "" {
+				event.Price.Currency = "USD"
 			}
 
 			return handler.IssueReceipt(msg.Context(), event)
@@ -77,22 +81,25 @@ func NewWatermillRouter(receiptsService event.ReceiptsService, spreadsheetsAPI e
 		"TicketBookingConfirmed",
 		appendToTrackerSub,
 		func(msg *message.Message) error {
-			// Fixing a malformed JSON message
-			// TODO: Remove once fixed
-			if string(msg.UUID) == brokenMessageID {
-				return nil
-			}
-
-			// Fixing an incorrect message type
-			// TODO: Remove once fixed
-			if msg.Metadata.Get("type") != "TicketBookingConfirmed" {
-				return nil
-			}
+			//// Fixing a malformed JSON message
+			//// TODO: Remove once fixed
+			//if string(msg.UUID) == brokenMessageID {
+			//	return nil
+			//}
+			//
+			//// Fixing an incorrect message type
+			//// TODO: Remove once fixed
+			//if msg.Metadata.Get("type") != "TicketBookingConfirmed" {
+			//	return nil
+			//}
 
 			var event entities.TicketBookingConfirmed
 			err := json.Unmarshal(msg.Payload, &event)
 			if err != nil {
 				return err
+			}
+			if event.Price.Currency == "" {
+				event.Price.Currency = "USD"
 			}
 
 			return handler.AppendToTracker(msg.Context(), event)
@@ -105,15 +112,18 @@ func NewWatermillRouter(receiptsService event.ReceiptsService, spreadsheetsAPI e
 		cancelTicketSub,
 		func(msg *message.Message) error {
 			// Fixing an incorrect message type
-			// TODO: Remove once fixed
-			if msg.Metadata.Get("type") != "TicketBookingCanceled" {
-				return nil
-			}
+			//// TODO: Remove once fixed
+			//if msg.Metadata.Get("type") != "TicketBookingCanceled" {
+			//	return nil
+			//}
 
 			var event entities.TicketBookingCanceled
 			err := json.Unmarshal(msg.Payload, &event)
 			if err != nil {
 				return err
+			}
+			if event.Price.Currency == "" {
+				event.Price.Currency = "USD"
 			}
 			return handler.CancelTicket(msg.Context(), event)
 		},
