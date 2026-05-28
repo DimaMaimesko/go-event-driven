@@ -20,8 +20,8 @@ type ReceiptsService interface {
 }
 
 type ReceiptsServiceStub struct {
-	// todo: implement me
-	lock           sync.Mutex
+	lock sync.Mutex
+
 	IssuedReceipts []IssueReceiptRequest
 }
 
@@ -30,5 +30,6 @@ func (s *ReceiptsServiceStub) IssueReceipt(ctx context.Context, request IssueRec
 	defer s.lock.Unlock()
 
 	s.IssuedReceipts = append(s.IssuedReceipts, request)
+
 	return nil
 }
