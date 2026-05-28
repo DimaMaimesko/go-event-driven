@@ -12,8 +12,6 @@ import (
 	"tickets/message/event"
 )
 
-const brokenMessageID = "2beaf5bc-d5e4-4653-b075-2b36bbf28949"
-
 func NewWatermillRouter(receiptsService event.ReceiptsService, spreadsheetsAPI event.SpreadsheetsAPI, rdb *redis.Client, watermillLogger watermill.LoggerAdapter) *message.Router {
 	router := message.NewDefaultRouter(watermillLogger)
 
@@ -50,24 +48,16 @@ func NewWatermillRouter(receiptsService event.ReceiptsService, spreadsheetsAPI e
 		"TicketBookingConfirmed",
 		issueReceiptSub,
 		func(msg *message.Message) error {
-			//// Fixing a malformed JSON message
-			//// TODO: Remove once fixed
-			//if string(msg.UUID) == brokenMessageID {
-			//	return nil
-			//}
-			//
-			//// Fixing an incorrect message type
-			//// TODO: Remove once fixed
-			//if msg.Metadata.Get("type") != "TicketBookingConfirmed" {
-			//	return nil
-			//}
-
 			var event entities.TicketBookingConfirmed
 			err := json.Unmarshal(msg.Payload, &event)
 			if err != nil {
 				return err
 			}
 
+			// Fixing a code bug: for some events, we didn't supply the currency, which was USD by default
+			// Now some events are spinning
+			// Add this if to default to USD for these events
+			// TODO: Remove once fixed
 			if event.Price.Currency == "" {
 				event.Price.Currency = "USD"
 			}
@@ -81,23 +71,16 @@ func NewWatermillRouter(receiptsService event.ReceiptsService, spreadsheetsAPI e
 		"TicketBookingConfirmed",
 		appendToTrackerSub,
 		func(msg *message.Message) error {
-			//// Fixing a malformed JSON message
-			//// TODO: Remove once fixed
-			//if string(msg.UUID) == brokenMessageID {
-			//	return nil
-			//}
-			//
-			//// Fixing an incorrect message type
-			//// TODO: Remove once fixed
-			//if msg.Metadata.Get("type") != "TicketBookingConfirmed" {
-			//	return nil
-			//}
-
 			var event entities.TicketBookingConfirmed
 			err := json.Unmarshal(msg.Payload, &event)
 			if err != nil {
 				return err
 			}
+
+			// Fixing a code bug: for some events, we didn't supply the currency, which was USD by default
+			// Now some events are spinning
+			// Add this if to default to USD for these events
+			// TODO: Remove once fixed
 			if event.Price.Currency == "" {
 				event.Price.Currency = "USD"
 			}
@@ -111,19 +94,10 @@ func NewWatermillRouter(receiptsService event.ReceiptsService, spreadsheetsAPI e
 		"TicketBookingCanceled",
 		cancelTicketSub,
 		func(msg *message.Message) error {
-			// Fixing an incorrect message type
-			//// TODO: Remove once fixed
-			//if msg.Metadata.Get("type") != "TicketBookingCanceled" {
-			//	return nil
-			//}
-
 			var event entities.TicketBookingCanceled
 			err := json.Unmarshal(msg.Payload, &event)
 			if err != nil {
 				return err
-			}
-			if event.Price.Currency == "" {
-				event.Price.Currency = "USD"
 			}
 			return handler.CancelTicket(msg.Context(), event)
 		},
