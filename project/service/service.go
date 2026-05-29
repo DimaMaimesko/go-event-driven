@@ -2,13 +2,16 @@ package service
 
 import (
 	"context"
+	"database/sql"
 	"errors"
 	stdHTTP "net/http"
+	"os"
 
 	"github.com/ThreeDotsLabs/go-event-driven/v2/common/log"
 	"github.com/ThreeDotsLabs/watermill"
 	watermillMessage "github.com/ThreeDotsLabs/watermill/message"
 	"github.com/labstack/echo/v4"
+	_ "github.com/lib/pq"
 	"github.com/redis/go-redis/v9"
 	"golang.org/x/sync/errgroup"
 
@@ -16,6 +19,22 @@ import (
 	"tickets/message"
 	"tickets/message/event"
 )
+
+func initializeSchema() error {
+	db, err := sql.Open("postgres", os.Getenv("POSTGRES_URL"))
+	if err != nil {
+		return err
+	}
+	defer db.Close()
+
+	_, err = db.Exec(`CREATE TABLE IF NOT EXISTS tickets (
+	ticket_id UUID PRIMARY KEY,
+	price_amount NUMERIC(10, 2) NOT NULL,
+	price_currency CHAR(3) NOT NULL,
+	customer_email VARCHAR(255) NOT NULL
+);`)
+	return err
+}
 
 type Service struct {
 	watermillRouter *watermillMessage.Router
@@ -27,6 +46,10 @@ func New(
 	spreadsheetsAPI event.SpreadsheetsAPI,
 	receiptsService event.ReceiptsService,
 ) Service {
+	if err := initializeSchema(); err != nil {
+		panic(err)
+	}
+
 	watermillLogger := watermill.NewSlogLogger(log.FromContext(context.Background()))
 
 	redisPublisher := message.NewRedisPublisher(redisClient, watermillLogger)
