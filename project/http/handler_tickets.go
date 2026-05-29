@@ -30,10 +30,11 @@ func (h Handler) PostTicketsStatus(c echo.Context) error {
 	for _, ticket := range request.Tickets {
 		if ticket.Status == "confirmed" {
 			event := entities.TicketBookingConfirmed{
-				Header:        entities.NewMessageHeader(),
+				Header: entities.NewMessageHeader(),
+
 				TicketID:      ticket.TicketID,
-				CustomerEmail: ticket.CustomerEmail,
 				Price:         ticket.Price,
+				CustomerEmail: ticket.CustomerEmail,
 			}
 
 			if err := h.eventBus.Publish(c.Request().Context(), event); err != nil {

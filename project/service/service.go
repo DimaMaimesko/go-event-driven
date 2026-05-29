@@ -33,10 +33,16 @@ func New(
 
 	eventBus := event.NewBus(redisPublisher)
 
-	watermillRouter := message.NewWatermillRouter(
-		receiptsService,
+	eventsHandler := event.NewHandler(
 		spreadsheetsAPI,
-		redisClient,
+		receiptsService,
+	)
+
+	eventProcessorConfig := event.NewProcessorConfig(redisClient, watermillLogger)
+
+	watermillRouter := message.NewWatermillRouter(
+		eventProcessorConfig,
+		eventsHandler,
 		watermillLogger,
 	)
 
