@@ -4,6 +4,7 @@ import (
 	"context"
 
 	"github.com/ThreeDotsLabs/watermill/message"
+	"github.com/ThreeDotsLabs/watermill/message/router/middleware"
 	"github.com/lithammer/shortuuid/v3"
 )
 
@@ -13,7 +14,10 @@ type CorrelationPublisherDecorator struct {
 
 func (c CorrelationPublisherDecorator) Publish(topic string, messages ...*message.Message) error {
 	// custom logic here
-
+	for _, msg := range messages {
+		correlationID := CorrelationIDFromContext(msg.Context())
+		middleware.SetCorrelationID(correlationID, msg)
+	}
 	return c.Publisher.Publish(topic, messages...)
 }
 
