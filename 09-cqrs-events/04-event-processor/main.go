@@ -12,32 +12,24 @@ func RegisterEventHandlers(
 	handlers []cqrs.EventHandler,
 	logger watermill.LoggerAdapter,
 ) error {
-
-	marshaler := cqrs.JSONMarshaler{
-		GenerateName: cqrs.StructName,
-	}
-
 	ep, err := cqrs.NewEventProcessorWithConfig(
 		router,
 		cqrs.EventProcessorConfig{
-			GenerateSubscribeTopic: func(params cqrs.EventProcessorGenerateSubscribeTopicParams) (string, error) {
-				return params.EventName, nil
-			},
 			SubscriberConstructor: func(params cqrs.EventProcessorSubscriberConstructorParams) (message.Subscriber, error) {
 				return sub, nil
 			},
-			Marshaler: marshaler,
-			Logger:    logger,
+			GenerateSubscribeTopic: func(params cqrs.EventProcessorGenerateSubscribeTopicParams) (string, error) {
+				return params.EventName, nil
+			},
+			Marshaler: cqrs.JSONMarshaler{
+				GenerateName: cqrs.StructName,
+			},
+			Logger: logger,
 		},
 	)
 	if err != nil {
 		return err
 	}
 
-	err = ep.AddHandlers(handlers...)
-	if err != nil {
-		return err
-	}
-
-	return nil
+	return ep.AddHandlers(handlers...)
 }
