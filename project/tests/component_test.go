@@ -12,6 +12,7 @@ import (
 	"time"
 
 	"github.com/google/uuid"
+	"github.com/jmoiron/sqlx"
 	"github.com/lithammer/shortuuid/v3"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -24,6 +25,12 @@ import (
 )
 
 func TestComponent(t *testing.T) {
+	db, err := sqlx.Open("postgres", os.Getenv("POSTGRES_URL"))
+	if err != nil {
+		panic(err)
+	}
+	defer db.Close()
+
 	redisClient := message.NewRedisClient(os.Getenv("REDIS_ADDR"))
 	defer redisClient.Close()
 
@@ -35,6 +42,7 @@ func TestComponent(t *testing.T) {
 
 	go func() {
 		svc := service.New(
+			db,
 			redisClient,
 			spreadsheetsAPI,
 			receiptsService,
