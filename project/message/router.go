@@ -1,14 +1,12 @@
 package message
 
 import (
-	"encoding/json"
-
 	"github.com/ThreeDotsLabs/watermill"
 	"github.com/ThreeDotsLabs/watermill-redisstream/pkg/redisstream"
+	"github.com/ThreeDotsLabs/watermill/components/cqrs"
 	"github.com/ThreeDotsLabs/watermill/message"
 	"github.com/redis/go-redis/v9"
 
-	"tickets/entities"
 	"tickets/message/event"
 )
 
@@ -19,73 +17,48 @@ func NewWatermillRouter(receiptsService event.ReceiptsService, spreadsheetsAPI e
 
 	useMiddlewares(router, watermillLogger)
 
-	issueReceiptSub, err := redisstream.NewSubscriber(redisstream.SubscriberConfig{
-		Client:        rdb,
-		ConsumerGroup: "issue-receipt",
-	}, watermillLogger)
+	ep, err := cqrs.NewEventProcessorWithConfig(
+		router,
+		cqrs.EventProcessorConfig{
+			SubscriberConstructor: func(params cqrs.EventProcessorSubscriberConstructorParams) (message.Subscriber, error) {
+				return redisstream.NewSubscriber(
+					redisstream.SubscriberConfig{
+						Client:        rdb,
+						ConsumerGroup: params.HandlerName,
+					},
+					watermillLogger,
+				)
+			},
+			GenerateSubscribeTopic: func(params cqrs.EventProcessorGenerateSubscribeTopicParams) (string, error) {
+				return params.EventName, nil
+			},
+			Marshaler: cqrs.JSONMarshaler{
+				GenerateName: cqrs.StructName,
+			},
+			Logger: watermillLogger,
+		},
+	)
 	if err != nil {
 		panic(err)
 	}
 
-	appendToTrackerSub, err := redisstream.NewSubscriber(redisstream.SubscriberConfig{
-		Client:        rdb,
-		ConsumerGroup: "append-to-tracker",
-	}, watermillLogger)
+	err = ep.AddHandlers(
+		cqrs.NewEventHandler(
+			"issue-receipt",
+			handler.IssueReceipt,
+		),
+		cqrs.NewEventHandler(
+			"append-to-tracker",
+			handler.AppendToTracker,
+		),
+		cqrs.NewEventHandler(
+			"cancel-ticket",
+			handler.CancelTicket,
+		),
+	)
 	if err != nil {
 		panic(err)
 	}
-
-	cancelTicketSub, err := redisstream.NewSubscriber(redisstream.SubscriberConfig{
-		Client:        rdb,
-		ConsumerGroup: "cancel-ticket",
-	}, watermillLogger)
-	if err != nil {
-		panic(err)
-	}
-
-	router.AddConsumerHandler(
-		"issue_receipt",
-		"TicketBookingConfirmed",
-		issueReceiptSub,
-		func(msg *message.Message) error {
-			var event entities.TicketBookingConfirmed
-			err := json.Unmarshal(msg.Payload, &event)
-			if err != nil {
-				return err
-			}
-
-			return handler.IssueReceipt(msg.Context(), event)
-		},
-	)
-
-	router.AddConsumerHandler(
-		"append_to_tracker",
-		"TicketBookingConfirmed",
-		appendToTrackerSub,
-		func(msg *message.Message) error {
-			var event entities.TicketBookingConfirmed
-			err := json.Unmarshal(msg.Payload, &event)
-			if err != nil {
-				return err
-			}
-
-			return handler.AppendToTracker(msg.Context(), event)
-		},
-	)
-
-	router.AddConsumerHandler(
-		"cancel_ticket",
-		"TicketBookingCanceled",
-		cancelTicketSub,
-		func(msg *message.Message) error {
-			var event entities.TicketBookingCanceled
-			err := json.Unmarshal(msg.Payload, &event)
-			if err != nil {
-				return err
-			}
-			return handler.CancelTicket(msg.Context(), event)
-		},
-	)
 
 	return router
 }

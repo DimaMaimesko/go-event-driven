@@ -9,7 +9,7 @@ import (
 	"tickets/entities"
 )
 
-func (h Handler) IssueReceipt(ctx context.Context, event entities.TicketBookingConfirmed) error {
+func (h Handler) IssueReceipt(ctx context.Context, event *entities.TicketBookingConfirmed) error {
 	log.FromContext(ctx).Info("Issuing receipt")
 
 	request := entities.IssueReceiptRequest{
