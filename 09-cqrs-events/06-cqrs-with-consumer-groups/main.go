@@ -14,15 +14,17 @@ func NewEventProcessor(
 	marshaler cqrs.CommandEventMarshaler,
 	logger watermill.LoggerAdapter,
 ) (*cqrs.EventProcessor, error) {
-
 	return cqrs.NewEventProcessorWithConfig(
 		router,
 		cqrs.EventProcessorConfig{
 			SubscriberConstructor: func(params cqrs.EventProcessorSubscriberConstructorParams) (message.Subscriber, error) {
-				return redisstream.NewSubscriber(redisstream.SubscriberConfig{
-					Client:        rdb,
-					ConsumerGroup: "svc-tickets." + params.HandlerName,
-				}, logger)
+				return redisstream.NewSubscriber(
+					redisstream.SubscriberConfig{
+						Client:        rdb,
+						ConsumerGroup: "svc-something." + params.HandlerName,
+					},
+					logger,
+				)
 			},
 			GenerateSubscribeTopic: func(params cqrs.EventProcessorGenerateSubscribeTopicParams) (string, error) {
 				return params.EventName, nil
