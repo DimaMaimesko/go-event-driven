@@ -30,6 +30,14 @@ func New(
 	watermillLogger := watermill.NewSlogLogger(log.FromContext(context.Background()))
 
 	redisPublisher := message.NewRedisPublisher(redisClient, watermillLogger)
+	redisPublisherWithCorrelation := log.CorrelationPublisherDecorator{
+		Publisher: redisPublisher,
+	}
+
+	eventBus, err := message.NewEventBus(redisPublisherWithCorrelation)
+	if err != nil {
+		panic("can't create event bus")
+	}
 
 	watermillRouter := message.NewWatermillRouter(
 		receiptsService,
@@ -40,6 +48,7 @@ func New(
 
 	echoRouter := ticketsHttp.NewHttpRouter(
 		redisPublisher,
+		*eventBus,
 	)
 
 	return Service{
