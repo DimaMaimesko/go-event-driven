@@ -5,11 +5,10 @@ import (
 
 	libHttp "github.com/ThreeDotsLabs/go-event-driven/v2/common/http"
 	"github.com/ThreeDotsLabs/watermill/components/cqrs"
-	"github.com/ThreeDotsLabs/watermill/message"
 	"github.com/labstack/echo/v4"
 )
 
-func NewHttpRouter(publisher message.Publisher, eventBus cqrs.EventBus) *echo.Echo {
+func NewHttpRouter(eventBus *cqrs.EventBus) *echo.Echo {
 	e := libHttp.NewEcho()
 
 	e.GET("/health", func(c echo.Context) error {
@@ -17,8 +16,7 @@ func NewHttpRouter(publisher message.Publisher, eventBus cqrs.EventBus) *echo.Ec
 	})
 
 	handler := Handler{
-		publisher: publisher,
-		eventBus:  eventBus,
+		eventBus: eventBus,
 	}
 
 	e.POST("/tickets-status", handler.PostTicketsStatus)

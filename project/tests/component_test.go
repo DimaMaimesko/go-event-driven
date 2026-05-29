@@ -1,3 +1,5 @@
+// This file contains tests that are executed to verify your solution.
+// It's read-only, so all modifications will be ignored.
 package tests_test
 
 import (
@@ -65,6 +67,18 @@ func TestComponent(t *testing.T) {
 		spreadsheetsAPI,
 		ticket,
 		"tickets-to-print",
+	)
+
+	ticket.Status = "canceled"
+	sendTicketsStatus(t, ticketsHttp.TicketsStatusRequest{
+		Tickets: []ticketsHttp.TicketStatusRequest{ticket},
+	})
+
+	assertRowToSheetAdded(
+		t,
+		spreadsheetsAPI,
+		ticket,
+		"tickets-to-refund",
 	)
 }
 
@@ -138,8 +152,8 @@ func assertReceiptForTicketIssued(t *testing.T, receiptsService *adapters.Receip
 		ok = true
 		break
 	}
-
 	require.Truef(t, ok, "receipt for ticket %s not found", ticket.TicketID)
+
 	assert.Equal(t, ticket.TicketID, receipt.TicketID)
 	assert.Equal(t, ticket.Price.Amount, receipt.Price.Amount)
 	assert.Equal(t, ticket.Price.Currency, receipt.Price.Currency)

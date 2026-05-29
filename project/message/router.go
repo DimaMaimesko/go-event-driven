@@ -54,14 +54,6 @@ func NewWatermillRouter(receiptsService event.ReceiptsService, spreadsheetsAPI e
 				return err
 			}
 
-			// Fixing a code bug: for some events, we didn't supply the currency, which was USD by default
-			// Now some events are spinning
-			// Add this if to default to USD for these events
-			// TODO: Remove once fixed
-			if event.Price.Currency == "" {
-				event.Price.Currency = "USD"
-			}
-
 			return handler.IssueReceipt(msg.Context(), event)
 		},
 	)
@@ -75,14 +67,6 @@ func NewWatermillRouter(receiptsService event.ReceiptsService, spreadsheetsAPI e
 			err := json.Unmarshal(msg.Payload, &event)
 			if err != nil {
 				return err
-			}
-
-			// Fixing a code bug: for some events, we didn't supply the currency, which was USD by default
-			// Now some events are spinning
-			// Add this if to default to USD for these events
-			// TODO: Remove once fixed
-			if event.Price.Currency == "" {
-				event.Price.Currency = "USD"
 			}
 
 			return handler.AppendToTracker(msg.Context(), event)
