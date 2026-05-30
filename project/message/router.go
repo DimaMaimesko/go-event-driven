@@ -36,8 +36,8 @@ func NewWatermillRouter(eventProcessorConfig cqrs.EventProcessorConfig, eventHan
 			eventHandler.StoreTickets,
 		),
 		cqrs.NewEventHandler(
-			"CancelTicket",
-			eventHandler.CancelTicket,
+			"RemoveCanceledTicket",
+			eventHandler.RemoveCanceledTicket,
 		),
 	)
 
