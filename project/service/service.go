@@ -5,7 +5,6 @@ import (
 	"errors"
 	"fmt"
 	stdHTTP "net/http"
-	"tickets/adapters"
 
 	"github.com/ThreeDotsLabs/go-event-driven/v2/common/log"
 	"github.com/ThreeDotsLabs/watermill"
@@ -34,13 +33,13 @@ func New(
 	spreadsheetsAPI event.SpreadsheetsAPI,
 	receiptsService event.ReceiptsService,
 ) Service {
+	ticketsRepo := db.NewTicketsRepository(dbConn)
+
 	watermillLogger := watermill.NewSlogLogger(log.FromContext(context.Background()))
 
 	redisPublisher := message.NewRedisPublisher(redisClient, watermillLogger)
 
 	eventBus := event.NewBus(redisPublisher)
-
-	ticketsRepo := adapters.NewTicketsRepository(dbConn)
 
 	eventsHandler := event.NewHandler(
 		spreadsheetsAPI,

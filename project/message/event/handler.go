@@ -7,15 +7,15 @@ import (
 )
 
 type Handler struct {
-	spreadsheetsAPI SpreadsheetsAPI
-	receiptsService ReceiptsService
-	ticketsRepo     TicketsRepository
+	spreadsheetsAPI   SpreadsheetsAPI
+	receiptsService   ReceiptsService
+	ticketsRepository TicketsRepository
 }
 
 func NewHandler(
 	spreadsheetsAPI SpreadsheetsAPI,
 	receiptsService ReceiptsService,
-	ticketsRepo TicketsRepository,
+	ticketsRepository TicketsRepository,
 ) Handler {
 	if spreadsheetsAPI == nil {
 		panic("missing spreadsheetsAPI")
@@ -23,14 +23,14 @@ func NewHandler(
 	if receiptsService == nil {
 		panic("missing receiptsService")
 	}
-	if ticketsRepo == nil {
-		panic("missing receiptsService")
+	if ticketsRepository == nil {
+		panic("missing ticketsRepository")
 	}
 
 	return Handler{
-		spreadsheetsAPI: spreadsheetsAPI,
-		receiptsService: receiptsService,
-		ticketsRepo:     ticketsRepo,
+		spreadsheetsAPI:   spreadsheetsAPI,
+		receiptsService:   receiptsService,
+		ticketsRepository: ticketsRepository,
 	}
 }
 
@@ -43,5 +43,5 @@ type ReceiptsService interface {
 }
 
 type TicketsRepository interface {
-	Save(ctx context.Context, ticket entities.Ticket) error
+	Add(ctx context.Context, ticket entities.Ticket) error
 }
