@@ -37,3 +37,16 @@ func (t TicketsRepository) Add(ctx context.Context, ticket entities.Ticket) erro
 
 	return nil
 }
+
+func (t TicketsRepository) Delete(ctx context.Context, ticketID string) error {
+	_, err := t.db.ExecContext(
+		ctx,
+		`DELETE FROM tickets WHERE ticket_id = $1`,
+		ticketID,
+	)
+	if err != nil {
+		return fmt.Errorf("could not delete ticket: %w", err)
+	}
+
+	return nil
+}
