@@ -31,15 +31,13 @@ func (h Handler) PrintTicket(ctx context.Context, event *entities.TicketBookingC
 		return fmt.Errorf("failed to upload ticket file: %w", err)
 	}
 
-	newEvent := entities.TicketPrinted{
-		Header: entities.NewMessageHeader(),
-
+	err = h.eventBus.Publish(ctx, entities.TicketPrinted{
+		Header:   entities.NewMessageHeader(),
 		TicketID: event.TicketID,
 		FileName: ticketFile,
-	}
-
-	if err := h.eventBus.Publish(ctx, newEvent); err != nil {
-		return fmt.Errorf("failed to publish TicketBookingConfirmed event: %w", err)
+	})
+	if err != nil {
+		return fmt.Errorf("failed to publish TicketPrinted event: %w", err)
 	}
 
 	return nil
