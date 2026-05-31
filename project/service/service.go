@@ -32,7 +32,7 @@ func New(
 	redisClient *redis.Client,
 	spreadsheetsAPI event.SpreadsheetsAPI,
 	receiptsService event.ReceiptsService,
-	printerService event.PrinterService,
+	filesAPI event.FilesAPI,
 ) Service {
 	ticketsRepo := db.NewTicketsRepository(dbConn)
 
@@ -45,8 +45,9 @@ func New(
 	eventsHandler := event.NewHandler(
 		spreadsheetsAPI,
 		receiptsService,
+		filesAPI,
 		ticketsRepo,
-		printerService,
+		eventBus,
 	)
 	eventProcessorConfig := event.NewProcessorConfig(redisClient, watermillLogger)
 
