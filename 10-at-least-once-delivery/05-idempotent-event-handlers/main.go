@@ -7,6 +7,8 @@ type PaymentTaken struct {
 	Amount    int
 }
 
+var payments map[string]struct{}
+
 type PaymentsHandler struct {
 	repo *PaymentsRepository
 }
@@ -28,10 +30,17 @@ func (p *PaymentsRepository) Payments() []PaymentTaken {
 }
 
 func NewPaymentsRepository() *PaymentsRepository {
+
+	payments = make(map[string]struct{})
 	return &PaymentsRepository{}
 }
 
 func (p *PaymentsRepository) SavePaymentTaken(ctx context.Context, event *PaymentTaken) error {
+	_, exist := payments[event.PaymentID]
+	if exist {
+		return nil
+	}
+	payments[event.PaymentID] = struct{}{}
 	p.payments = append(p.payments, *event)
 	return nil
 }
