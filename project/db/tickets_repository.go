@@ -50,3 +50,25 @@ func (t TicketsRepository) Remove(ctx context.Context, ticketID string) error {
 
 	return nil
 }
+
+func (t TicketsRepository) FindAll(ctx context.Context) ([]entities.Ticket, error) {
+	var returnTickets []entities.Ticket
+
+	err := t.db.SelectContext(
+		ctx,
+		&returnTickets, `
+            SELECT
+                ticket_id,
+                price_amount as "price.amount",
+                price_currency as "price.currency",
+                customer_email
+            FROM
+                tickets
+        `,
+	)
+	if err != nil {
+		return nil, err
+	}
+
+	return returnTickets, nil
+}
