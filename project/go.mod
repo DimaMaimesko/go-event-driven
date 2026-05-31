@@ -12,6 +12,7 @@ require (
 	github.com/lib/pq v1.10.9
 	github.com/lithammer/shortuuid/v3 v3.0.7
 	github.com/redis/go-redis/v9 v9.8.0
+	github.com/samber/lo v1.50.0
 	github.com/stretchr/testify v1.11.0
 	golang.org/x/sync v0.14.0
 )

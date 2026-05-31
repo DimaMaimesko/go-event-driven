@@ -3,57 +3,65 @@ package db_test
 import (
 	"context"
 	"os"
+	"sync"
 	"testing"
 
 	"github.com/google/uuid"
 	"github.com/jmoiron/sqlx"
 	_ "github.com/lib/pq"
-	"github.com/stretchr/testify/assert"
+	"github.com/samber/lo"
 	"github.com/stretchr/testify/require"
 
-	"tickets/db"
+	ticketsDb "tickets/db"
 	"tickets/entities"
 )
 
-func TestTicketsRepository_IdempotentAdd(t *testing.T) {
-	dbConn, err := sqlx.Open("postgres", os.Getenv("POSTGRES_URL"))
-	require.NoError(t, err)
-	defer dbConn.Close()
+var db *sqlx.DB
 
-	err = db.InitializeDatabaseSchema(dbConn)
-	require.NoError(t, err)
+var getDbOnce sync.Once
 
-	repo := db.NewTicketsRepository(dbConn)
+func getDb() *sqlx.DB {
+	getDbOnce.Do(func() {
+		var err error
+		db, err = sqlx.Open("postgres", os.Getenv("POSTGRES_URL"))
+		if err != nil {
+			panic(err)
+		}
+	})
+	return db
+}
 
+func TestTicketsRepository_Add_idempotency(t *testing.T) {
 	ctx := context.Background()
 
-	ticketID := uuid.NewString()
-	ticket := entities.Ticket{
-		TicketID: ticketID,
-		Price: entities.Money{
-			Amount:   "100.00",
-			Currency: "USD",
-		},
-		CustomerEmail: "test@example.com",
-	}
+	db := getDb()
 
-	// 1. Add the ticket for the first time
-	err = repo.Add(ctx, ticket)
-	require.NoError(t, err, "first addition should not fail")
-
-	// 2. Add the ticket again - it should be idempotent
-	err = repo.Add(ctx, ticket)
-	require.NoError(t, err, "second addition should be idempotent and not fail")
-
-	// 3. Verify that only one ticket was added
-	tickets, err := repo.FindAll(ctx)
+	err := ticketsDb.InitializeDatabaseSchema(db)
 	require.NoError(t, err)
 
-	count := 0
-	for _, tkt := range tickets {
-		if tkt.TicketID == ticketID {
-			count++
-		}
+	repo := ticketsDb.NewTicketsRepository(db)
+
+	ticketToAdd := entities.Ticket{
+		TicketID: uuid.NewString(),
+		Price: entities.Money{
+			Amount:   "30.00",
+			Currency: "EUR",
+		},
+		CustomerEmail: "foo@bar.com",
 	}
-	assert.Equal(t, 1, count, "there should be exactly one ticket with the given ID")
+
+	for i := 0; i < 2; i++ {
+		err = repo.Add(ctx, ticketToAdd)
+		require.NoError(t, err)
+
+		// probably it would be good to have a method to get ticket by ID
+		tickets, err := repo.FindAll(ctx)
+		require.NoError(t, err)
+
+		foundTickets := lo.Filter(tickets, func(t entities.Ticket, _ int) bool {
+			return t.TicketID == ticketToAdd.TicketID
+		})
+		// add should be idempotent, so the method should always return 1
+		require.Len(t, foundTickets, 1)
+	}
 }
