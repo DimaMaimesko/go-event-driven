@@ -1,12 +1,18 @@
 package http
 
 import (
-	"tickets/db"
+	"context"
 
 	"github.com/ThreeDotsLabs/watermill/components/cqrs"
+
+	"tickets/entities"
 )
 
 type Handler struct {
 	eventBus    *cqrs.EventBus
-	ticketsRepo db.TicketsRepository
+	ticketsRepo TicketsRepository
+}
+
+type TicketsRepository interface {
+	FindAll(ctx context.Context) ([]entities.Ticket, error)
 }
