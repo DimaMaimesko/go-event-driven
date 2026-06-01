@@ -28,9 +28,10 @@ func (h Handler) PostTicketsStatus(c echo.Context) error {
 	}
 
 	for _, ticket := range request.Tickets {
+		idempotencyKey := c.Request().Header.Get("Idempotency-Key") + ticket.TicketID
 		if ticket.Status == "confirmed" {
 			event := entities.TicketBookingConfirmed{
-				Header: entities.NewMessageHeader(),
+				Header: entities.NewMessageHeaderWithIdempotencyKey(idempotencyKey),
 
 				TicketID:      ticket.TicketID,
 				Price:         ticket.Price,

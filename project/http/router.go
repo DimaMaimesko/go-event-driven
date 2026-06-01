@@ -23,7 +23,15 @@ func NewHttpRouter(
 		ticketsRepo: ticketsRepository,
 	}
 
-	e.POST("/tickets-status", handler.PostTicketsStatus)
+	//e.POST("/tickets-status", handler.PostTicketsStatus)
+	e.POST("/tickets-status", handler.PostTicketsStatus, func(next echo.HandlerFunc) echo.HandlerFunc {
+		return func(c echo.Context) error {
+			if c.Request().Header.Get("Idempotency-Key") == "" {
+				return echo.NewHTTPError(http.StatusBadRequest, "Idempotency-Key header is required")
+			}
+			return next(c)
+		}
+	})
 
 	e.GET("/tickets", handler.GetTickets)
 
