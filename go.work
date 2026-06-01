@@ -20,5 +20,6 @@ use (
 	./09-cqrs-events/06-cqrs-with-consumer-groups
 	./10-at-least-once-delivery/05-idempotent-event-handlers
 	./10-at-least-once-delivery/10-idempotency-key-in-api
+	./11-outbox/05-publishing-events-in-transaction
 	./project
 )
