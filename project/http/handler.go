@@ -9,9 +9,10 @@ import (
 )
 
 type Handler struct {
-	eventBus        *cqrs.EventBus
-	ticketsRepo     TicketsRepository
-	showsRepository ShowsRepository
+	eventBus           *cqrs.EventBus
+	ticketsRepo        TicketsRepository
+	showsRepository    ShowsRepository
+	bookingsRepository BookingsRepository
 }
 
 type TicketsRepository interface {
@@ -20,4 +21,8 @@ type TicketsRepository interface {
 
 type ShowsRepository interface {
 	AddShow(ctx context.Context, show entities.Show) error
+}
+
+type BookingsRepository interface {
+	BookTickets(ctx context.Context, booking entities.Booking) error
 }

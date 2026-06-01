@@ -36,6 +36,7 @@ func New(
 ) Service {
 	ticketsRepo := db.NewTicketsRepository(dbConn)
 	showsRepo := db.NewShowsRepository(dbConn)
+	bookingsRepo := db.NewBookingsRepository(dbConn)
 
 	watermillLogger := watermill.NewSlogLogger(log.FromContext(context.Background()))
 
@@ -62,6 +63,7 @@ func New(
 		eventBus,
 		ticketsRepo,
 		showsRepo,
+		bookingsRepo,
 	)
 
 	return Service{

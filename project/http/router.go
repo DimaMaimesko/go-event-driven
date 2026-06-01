@@ -12,6 +12,7 @@ func NewHttpRouter(
 	eventBus *cqrs.EventBus,
 	ticketsRepository TicketsRepository,
 	showsRepository ShowsRepository,
+	bookingsRepository BookingsRepository,
 ) *echo.Echo {
 	e := libHttp.NewEcho()
 
@@ -20,12 +21,15 @@ func NewHttpRouter(
 	})
 
 	handler := Handler{
-		eventBus:        eventBus,
-		ticketsRepo:     ticketsRepository,
-		showsRepository: showsRepository,
+		eventBus:           eventBus,
+		ticketsRepo:        ticketsRepository,
+		showsRepository:    showsRepository,
+		bookingsRepository: bookingsRepository,
 	}
 
 	e.POST("/tickets-status", handler.PostTicketsStatus)
+
+	e.POST("/book-tickets", handler.BookTickets)
 
 	e.GET("/tickets", handler.GetTickets)
 
