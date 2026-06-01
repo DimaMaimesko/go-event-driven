@@ -29,9 +29,8 @@ func NewHttpRouter(
 
 	e.POST("/tickets-status", handler.PostTicketsStatus)
 
-	e.POST("/book-tickets", handler.BookTickets)
-
 	e.GET("/tickets", handler.GetTickets)
+	e.POST("/book-tickets", handler.PostBookTickets)
 
 	e.POST("/shows", handler.PostShows)
 

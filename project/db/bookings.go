@@ -15,20 +15,20 @@ type BookingsRepository struct {
 
 func NewBookingsRepository(db *sqlx.DB) BookingsRepository {
 	if db == nil {
-		panic("db is nil")
+		panic("nil db")
 	}
 
 	return BookingsRepository{db: db}
 }
 
-func (s BookingsRepository) BookTickets(ctx context.Context, booking entities.Booking) error {
-	_, err := s.db.NamedExecContext(ctx, `
+func (b BookingsRepository) AddBooking(ctx context.Context, booking entities.Booking) (err error) {
+	_, err = b.db.NamedExecContext(ctx, `
 		INSERT INTO 
 		    bookings (booking_id, show_id, number_of_tickets, customer_email) 
 		VALUES (:booking_id, :show_id, :number_of_tickets, :customer_email)
 		`, booking)
 	if err != nil {
-		return fmt.Errorf("could not add show: %w", err)
+		return fmt.Errorf("could not add booking: %w", err)
 	}
 
 	return nil

@@ -33,7 +33,6 @@ func InitializeDatabaseSchema(db *sqlx.DB) error {
 			customer_email VARCHAR(255) NOT NULL,
 			FOREIGN KEY (show_id) REFERENCES shows(show_id)
 		);
-
 	`)
 	if err != nil {
 		return fmt.Errorf("could not initialize database schema: %w", err)
