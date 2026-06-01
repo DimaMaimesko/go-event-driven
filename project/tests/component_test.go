@@ -69,6 +69,7 @@ func TestComponent(t *testing.T) {
 		ticketsHttp.TicketsStatusRequest{
 			Tickets: []ticketsHttp.TicketStatusRequest{ticket},
 		},
+		uuid.NewString(),
 	)
 
 	assertReceiptForTicketIssued(t, receiptsService, ticket)
@@ -82,7 +83,7 @@ func TestComponent(t *testing.T) {
 	ticket.Status = "canceled"
 	sendTicketsStatus(t, ticketsHttp.TicketsStatusRequest{
 		Tickets: []ticketsHttp.TicketStatusRequest{ticket},
-	})
+	}, uuid.NewString())
 
 	assertRowToSheetAdded(
 		t,
@@ -169,7 +170,7 @@ func assertReceiptForTicketIssued(t *testing.T, receiptsService *adapters.Receip
 	assert.Equal(t, ticket.Price.Currency, receipt.Price.Currency)
 }
 
-func sendTicketsStatus(t *testing.T, req ticketsHttp.TicketsStatusRequest) {
+func sendTicketsStatus(t *testing.T, req ticketsHttp.TicketsStatusRequest, idempotencyKey string) {
 	t.Helper()
 
 	payload, err := json.Marshal(req)
@@ -185,6 +186,7 @@ func sendTicketsStatus(t *testing.T, req ticketsHttp.TicketsStatusRequest) {
 	require.NoError(t, err)
 
 	httpReq.Header.Set("Correlation-ID", correlationID)
+	httpReq.Header.Set("Idempotency-Key", idempotencyKey)
 	httpReq.Header.Set("Content-Type", "application/json")
 
 	resp, err := http.DefaultClient.Do(httpReq)

@@ -12,19 +12,19 @@ type MessageHeader struct {
 	IdempotencyKey string    `json:"idempotency_key"`
 }
 
-func NewMessageHeaderWithIdempotencyKey(idempotencyKey string) MessageHeader {
-	return MessageHeader{
-		ID:             uuid.NewString(),
-		PublishedAt:    time.Now().UTC(),
-		IdempotencyKey: idempotencyKey,
-	}
-}
-
 func NewMessageHeader() MessageHeader {
 	return MessageHeader{
 		ID:             uuid.NewString(),
 		PublishedAt:    time.Now().UTC(),
 		IdempotencyKey: uuid.NewString(),
+	}
+}
+
+func NewMessageHeaderWithIdempotencyKey(idempotencyKey string) MessageHeader {
+	return MessageHeader{
+		ID:             uuid.NewString(),
+		PublishedAt:    time.Now().UTC(),
+		IdempotencyKey: idempotencyKey,
 	}
 }
 
