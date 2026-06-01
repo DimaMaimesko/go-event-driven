@@ -17,7 +17,7 @@ func (c *ReceiptsServiceStub) IssueReceipt(ctx context.Context, request entities
 	c.lock.Lock()
 	defer c.lock.Unlock()
 
-	c.IssuedReceipts[request.IdempotencyKey] = request
+	c.IssuedReceipts[request.TicketID] = request
 
 	return nil
 }

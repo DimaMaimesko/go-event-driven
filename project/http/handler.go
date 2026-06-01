@@ -9,9 +9,9 @@ import (
 )
 
 type Handler struct {
-	eventBus    *cqrs.EventBus
-	ticketsRepo TicketsRepository
-	showsRepo   ShowsRepository
+	eventBus        *cqrs.EventBus
+	ticketsRepo     TicketsRepository
+	showsRepository ShowsRepository
 }
 
 type TicketsRepository interface {

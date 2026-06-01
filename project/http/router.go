@@ -20,16 +20,16 @@ func NewHttpRouter(
 	})
 
 	handler := Handler{
-		eventBus:    eventBus,
-		ticketsRepo: ticketsRepository,
-		showsRepo:   showsRepository,
+		eventBus:        eventBus,
+		ticketsRepo:     ticketsRepository,
+		showsRepository: showsRepository,
 	}
-
-	e.POST("/shows", handler.Shows)
 
 	e.POST("/tickets-status", handler.PostTicketsStatus)
 
 	e.GET("/tickets", handler.GetTickets)
+
+	e.POST("/shows", handler.PostShows)
 
 	return e
 }
