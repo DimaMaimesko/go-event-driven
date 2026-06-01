@@ -11,8 +11,13 @@ import (
 type Handler struct {
 	eventBus    *cqrs.EventBus
 	ticketsRepo TicketsRepository
+	showsRepo   ShowsRepository
 }
 
 type TicketsRepository interface {
 	FindAll(ctx context.Context) ([]entities.Ticket, error)
+}
+
+type ShowsRepository interface {
+	AddShow(ctx context.Context, show entities.Show) error
 }
