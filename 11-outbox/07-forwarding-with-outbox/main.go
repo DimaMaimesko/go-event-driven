@@ -1,9 +1,12 @@
 package main
 
 import (
+	"context"
+
 	"github.com/ThreeDotsLabs/watermill"
 	"github.com/ThreeDotsLabs/watermill-redisstream/pkg/redisstream"
 	watermillSQL "github.com/ThreeDotsLabs/watermill-sql/v3/pkg/sql"
+	forwarder2 "github.com/ThreeDotsLabs/watermill/components/forwarder"
 	"github.com/jmoiron/sqlx"
 	_ "github.com/lib/pq"
 	"github.com/redis/go-redis/v9"
@@ -39,7 +42,26 @@ func RunForwarder(
 		return err
 	}
 
-	// TODO: your code goes here
+	forwarder, err := forwarder2.NewForwarder(
+		postgresSub,
+		redisPub,
+		logger,
+		forwarder2.Config{
+			ForwarderTopic: outboxTopic,
+		},
+	)
+	if err != nil {
+		return err
+	}
+
+	go func() {
+		err := forwarder.Run(context.Background())
+		if err != nil {
+			logger.Error("forwarder failed", err, nil)
+		}
+	}()
+
+	<-forwarder.Running()
 
 	return nil
 }
