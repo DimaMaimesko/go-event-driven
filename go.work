@@ -22,5 +22,6 @@ use (
 	./10-at-least-once-delivery/10-idempotency-key-in-api
 	./11-outbox/05-publishing-events-in-transaction
 	./11-outbox/06-subscribing-to-sql
+	./11-outbox/07-forwarding-with-outbox
 	./project
 )
