@@ -2,6 +2,7 @@ package http
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"net/http"
 
@@ -44,9 +45,13 @@ func (h Handler) PostBookTickets(c echo.Context) error {
 		ShowID:          req.ShowID,
 	})
 	if err != nil {
+		// preserve *echo.HTTPError (e.g. 400 when not enough seats) so the proper status code is returned
+		var httpErr *echo.HTTPError
+		if errors.As(err, &httpErr) {
+			return httpErr
+		}
 		return fmt.Errorf("failed to add booking: %w", err)
 	}
-
 	return c.JSON(
 		http.StatusCreated,
 		BookTicketResponse{
