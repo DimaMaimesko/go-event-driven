@@ -8,8 +8,6 @@ import (
 
 	"github.com/ThreeDotsLabs/go-event-driven/v2/common/log"
 	"github.com/ThreeDotsLabs/watermill"
-	watermillSQL "github.com/ThreeDotsLabs/watermill-sql/v3/pkg/sql"
-	"github.com/ThreeDotsLabs/watermill/components/forwarder"
 	watermillMessage "github.com/ThreeDotsLabs/watermill/message"
 	"github.com/jmoiron/sqlx"
 	"github.com/labstack/echo/v4"
@@ -21,9 +19,8 @@ import (
 	ticketsHttp "tickets/http"
 	"tickets/message"
 	"tickets/message/event"
+	"tickets/message/outbox"
 )
-
-const outboxTopic = "events_to_forward"
 
 type Service struct {
 	db              *sqlx.DB
@@ -55,45 +52,17 @@ func New(
 		ticketsRepo,
 		eventBus,
 	)
+
+	postgresSubscriber := outbox.NewPostgresSubscriber(dbConn.DB, watermillLogger)
 	eventProcessorConfig := event.NewProcessorConfig(redisClient, watermillLogger)
 
 	watermillRouter := message.NewWatermillRouter(
+		postgresSubscriber,
+		redisPublisher,
 		eventProcessorConfig,
 		eventsHandler,
 		watermillLogger,
 	)
-
-	// SQL subscriber reading enveloped messages from the outbox table.
-	// InitializeSchema=true makes sure the watermill_events_to_forward table is created automatically.
-	sqlSubscriber, err := watermillSQL.NewSubscriber(
-		dbConn,
-		watermillSQL.SubscriberConfig{
-			SchemaAdapter:    watermillSQL.DefaultPostgreSQLSchema{},
-			OffsetsAdapter:   watermillSQL.DefaultPostgreSQLOffsetsAdapter{},
-			InitializeSchema: true,
-		},
-		watermillLogger,
-	)
-	if err != nil {
-		panic(err)
-	}
-
-	// The Forwarder reads enveloped messages from the SQL subscriber and re-publishes
-	// them to their destination topic using the existing Redis publisher.
-	// Passing the existing Router via Config.Router registers the Forwarder's handler
-	// with it, so the Forwarder runs as part of the Router's lifecycle.
-	_, err = forwarder.NewForwarder(
-		sqlSubscriber,
-		redisPublisher,
-		watermillLogger,
-		forwarder.Config{
-			ForwarderTopic: outboxTopic,
-			Router:         watermillRouter,
-		},
-	)
-	if err != nil {
-		panic(err)
-	}
 
 	echoRouter := ticketsHttp.NewHttpRouter(
 		eventBus,
