@@ -4,6 +4,8 @@ import (
 	"fmt"
 
 	"github.com/jmoiron/sqlx"
+
+	"tickets/message/outbox"
 )
 
 func InitializeDatabaseSchema(db *sqlx.DB) error {
@@ -36,6 +38,11 @@ func InitializeDatabaseSchema(db *sqlx.DB) error {
 	`)
 	if err != nil {
 		return fmt.Errorf("could not initialize database schema: %w", err)
+	}
+
+	err = outbox.InitializeSchema(db.DB)
+	if err != nil {
+		return fmt.Errorf("could not initialize outbox schema: %w", err)
 	}
 
 	return nil

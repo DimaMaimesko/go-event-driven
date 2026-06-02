@@ -59,8 +59,7 @@ func (b BookingsRepository) AddBooking(ctx context.Context, booking entities.Boo
 			}
 
 			if availableSeats-alreadyBookedSeats < booking.NumberOfTickets {
-				// returning an HTTP error from the repository is usually a bad idea,
-				// learn more here: https://threedots.tech/post/introducing-clean-architecture/
+				// this is usually a bad idea, learn more here: https://threedots.tech/post/introducing-clean-architecture/
 				// we'll improve it later
 				return echo.NewHTTPError(http.StatusBadRequest, "not enough seats available")
 			}
