@@ -31,10 +31,10 @@ type Service struct {
 func New(
 	dbConn *sqlx.DB,
 	redisClient *redis.Client,
+	deadNationAPI event.DeadNationAPI,
 	spreadsheetsAPI event.SpreadsheetsAPI,
 	receiptsService event.ReceiptsService,
 	filesAPI event.FilesAPI,
-	deadNationClient event.DeadNationClient,
 ) Service {
 	ticketsRepo := db.NewTicketsRepository(dbConn)
 	showsRepo := db.NewShowsRepository(dbConn)
@@ -47,12 +47,12 @@ func New(
 	eventBus := event.NewBus(redisPublisher)
 
 	eventsHandler := event.NewHandler(
+		deadNationAPI,
 		spreadsheetsAPI,
 		receiptsService,
 		filesAPI,
 		ticketsRepo,
 		showsRepo,
-		deadNationClient,
 		eventBus,
 	)
 

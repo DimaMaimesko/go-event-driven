@@ -29,6 +29,10 @@ func NewWatermillRouter(
 
 	eventProcessor.AddHandlers(
 		cqrs.NewEventHandler(
+			"BookPlaceInDeadNation",
+			eventHandler.BookPlaceInDeadNation,
+		),
+		cqrs.NewEventHandler(
 			"AppendToTracker",
 			eventHandler.AppendToTracker,
 		),
@@ -51,10 +55,6 @@ func NewWatermillRouter(
 		cqrs.NewEventHandler(
 			"RemoveCanceledTicket",
 			eventHandler.RemoveCanceledTicket,
-		),
-		cqrs.NewEventHandler(
-			"BookDeadNationTicket",
-			eventHandler.BookDeadNationTicket,
 		),
 	)
 

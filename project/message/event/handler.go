@@ -2,32 +2,38 @@ package event
 
 import (
 	"context"
-	"tickets/adapters"
 
 	"github.com/ThreeDotsLabs/watermill/components/cqrs"
+	"github.com/google/uuid"
 
 	"tickets/entities"
 )
 
 type Handler struct {
+	deadNationAPI     DeadNationAPI
 	spreadsheetsAPI   SpreadsheetsAPI
 	receiptsService   ReceiptsService
 	filesAPI          FilesAPI
 	ticketsRepository TicketsRepository
 	showsRepository   ShowsRepository
-	deadNationClient  DeadNationClient
 	eventBus          *cqrs.EventBus
 }
 
 func NewHandler(
+	deadNationAPI DeadNationAPI,
 	spreadsheetsAPI SpreadsheetsAPI,
 	receiptsService ReceiptsService,
 	filesAPI FilesAPI,
 	ticketsRepository TicketsRepository,
 	showsRepository ShowsRepository,
-	deadNationClient DeadNationClient,
 	eventBus *cqrs.EventBus,
 ) Handler {
+	if eventBus == nil {
+		panic("missing eventBus")
+	}
+	if deadNationAPI == nil {
+		panic("missing deadNationAPI")
+	}
 	if spreadsheetsAPI == nil {
 		panic("missing spreadsheetsAPI")
 	}
@@ -43,20 +49,17 @@ func NewHandler(
 	if showsRepository == nil {
 		panic("missing showsRepository")
 	}
-	if deadNationClient == nil {
-		panic("missing deadNationClient")
-	}
 	if eventBus == nil {
 		panic("missing eventBus")
 	}
 
 	return Handler{
+		deadNationAPI:     deadNationAPI,
 		spreadsheetsAPI:   spreadsheetsAPI,
 		receiptsService:   receiptsService,
 		filesAPI:          filesAPI,
 		ticketsRepository: ticketsRepository,
 		showsRepository:   showsRepository,
-		deadNationClient:  deadNationClient,
 		eventBus:          eventBus,
 	}
 }
@@ -79,9 +82,9 @@ type TicketsRepository interface {
 }
 
 type ShowsRepository interface {
-	ShowByID(ctx context.Context, showID string) (entities.Show, error)
+	ShowByID(ctx context.Context, showID uuid.UUID) (entities.Show, error)
 }
 
-type DeadNationClient interface {
-	BookTicket(ctx context.Context, booking adapters.DeadNationBooking) error
+type DeadNationAPI interface {
+	BookInDeadNation(ctx context.Context, request entities.DeadNationBooking) error
 }
