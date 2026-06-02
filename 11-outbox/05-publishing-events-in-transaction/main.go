@@ -1,6 +1,8 @@
 package main
 
 import (
+	"fmt"
+
 	"github.com/ThreeDotsLabs/watermill"
 	watermillSQL "github.com/ThreeDotsLabs/watermill-sql/v3/pkg/sql"
 	"github.com/ThreeDotsLabs/watermill/message"
@@ -20,11 +22,8 @@ func PublishInTx(
 		watermill.NewSlogLogger(nil),
 	)
 	if err != nil {
-		return err
+		return fmt.Errorf("failed to create outbox publisher: %w", err)
 	}
 
 	return publisher.Publish("ItemAddedToCart", message)
-}
-
-func main() {
 }
