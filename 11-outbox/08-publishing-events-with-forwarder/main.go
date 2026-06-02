@@ -34,13 +34,9 @@ func PublishInTx(
 		return fmt.Errorf("failed to create outbox publisher: %w", err)
 	}
 
-	// TODO: your code goes here
-	forwarderPublisher := forwarder.NewPublisher(publisher, forwarder.PublisherConfig{
+	publisher = forwarder.NewPublisher(publisher, forwarder.PublisherConfig{
 		ForwarderTopic: outboxTopic,
 	})
-	err = forwarderPublisher.Publish(topic, msg)
-	if err != nil {
-		return err
-	}
-	return nil
+
+	return publisher.Publish(topic, msg)
 }
