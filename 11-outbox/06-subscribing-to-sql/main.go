@@ -24,13 +24,12 @@ func SubscribeToMessages(
 		logger,
 	)
 	if err != nil {
-		return nil, nil
+		return nil, err
 	}
-	err = subscriber.SubscribeInitialize(topic)
-	if err != nil {
-		return nil, nil
-	}
-	message, err := subscriber.Subscribe(context.Background(), "ItemAddedToCart")
 
-	return message, nil
+	if err := subscriber.SubscribeInitialize(topic); err != nil {
+		return nil, err
+	}
+
+	return subscriber.Subscribe(context.Background(), topic)
 }
