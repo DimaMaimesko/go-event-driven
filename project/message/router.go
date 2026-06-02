@@ -52,6 +52,10 @@ func NewWatermillRouter(
 			"RemoveCanceledTicket",
 			eventHandler.RemoveCanceledTicket,
 		),
+		cqrs.NewEventHandler(
+			"BookDeadNationTicket",
+			eventHandler.BookDeadNationTicket,
+		),
 	)
 
 	return router

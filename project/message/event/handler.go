@@ -2,6 +2,7 @@ package event
 
 import (
 	"context"
+	"tickets/adapters"
 
 	"github.com/ThreeDotsLabs/watermill/components/cqrs"
 
@@ -13,6 +14,8 @@ type Handler struct {
 	receiptsService   ReceiptsService
 	filesAPI          FilesAPI
 	ticketsRepository TicketsRepository
+	showsRepository   ShowsRepository
+	deadNationClient  DeadNationClient
 	eventBus          *cqrs.EventBus
 }
 
@@ -21,6 +24,8 @@ func NewHandler(
 	receiptsService ReceiptsService,
 	filesAPI FilesAPI,
 	ticketsRepository TicketsRepository,
+	showsRepository ShowsRepository,
+	deadNationClient DeadNationClient,
 	eventBus *cqrs.EventBus,
 ) Handler {
 	if spreadsheetsAPI == nil {
@@ -35,6 +40,12 @@ func NewHandler(
 	if ticketsRepository == nil {
 		panic("missing ticketsRepository")
 	}
+	if showsRepository == nil {
+		panic("missing showsRepository")
+	}
+	if deadNationClient == nil {
+		panic("missing deadNationClient")
+	}
 	if eventBus == nil {
 		panic("missing eventBus")
 	}
@@ -44,6 +55,8 @@ func NewHandler(
 		receiptsService:   receiptsService,
 		filesAPI:          filesAPI,
 		ticketsRepository: ticketsRepository,
+		showsRepository:   showsRepository,
+		deadNationClient:  deadNationClient,
 		eventBus:          eventBus,
 	}
 }
@@ -63,4 +76,12 @@ type FilesAPI interface {
 type TicketsRepository interface {
 	Add(ctx context.Context, ticket entities.Ticket) error
 	Remove(ctx context.Context, ticketID string) error
+}
+
+type ShowsRepository interface {
+	ShowByID(ctx context.Context, showID string) (entities.Show, error)
+}
+
+type DeadNationClient interface {
+	BookTicket(ctx context.Context, booking adapters.DeadNationBooking) error
 }
