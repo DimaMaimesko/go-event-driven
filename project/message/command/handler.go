@@ -12,9 +12,10 @@ type Handler struct {
 	eventBus *cqrs.EventBus
 
 	receiptsServiceClient ReceiptsService
+	paymentsServiceClient PaymentsService
 }
 
-func NewHandler(eventBus *cqrs.EventBus, receiptsServiceClient ReceiptsService) Handler {
+func NewHandler(eventBus *cqrs.EventBus, receiptsServiceClient ReceiptsService, paymentsServiceClient PaymentsService) Handler {
 	if eventBus == nil {
 		panic("eventBus is required")
 	}
@@ -25,6 +26,7 @@ func NewHandler(eventBus *cqrs.EventBus, receiptsServiceClient ReceiptsService) 
 	handler := Handler{
 		eventBus:              eventBus,
 		receiptsServiceClient: receiptsServiceClient,
+		paymentsServiceClient: paymentsServiceClient,
 	}
 
 	return handler
@@ -32,4 +34,8 @@ func NewHandler(eventBus *cqrs.EventBus, receiptsServiceClient ReceiptsService) 
 
 type ReceiptsService interface {
 	VoidReceipt(ctx context.Context, request entities.VoidReceipt) error
+}
+
+type PaymentsService interface {
+	RefundPayment(ctx context.Context, request entities.PaymentRefund) error
 }

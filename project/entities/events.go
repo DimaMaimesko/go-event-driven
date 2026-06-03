@@ -58,3 +58,9 @@ type BookingMade struct {
 	CustomerEmail   string        `json:"customer_email"`
 	ShowID          uuid.UUID     `json:"show_id"`
 }
+
+type PaymentRefund struct {
+	TicketID       string
+	RefundReason   string
+	IdempotencyKey string
+}
