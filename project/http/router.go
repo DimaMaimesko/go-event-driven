@@ -31,13 +31,11 @@ func NewHttpRouter(
 
 	e.POST("/tickets-status", handler.PostTicketsStatus)
 
+	e.PUT("/ticket-refund/:ticket_id", handler.PutTicketRefund)
 	e.GET("/tickets", handler.GetTickets)
-
 	e.POST("/book-tickets", handler.PostBookTickets)
 
 	e.POST("/shows", handler.PostShows)
-
-	e.PUT("/ticket-refund/:ticket_id", handler.TicketRefund)
 
 	return e
 }

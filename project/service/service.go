@@ -5,7 +5,6 @@ import (
 	"errors"
 	"fmt"
 	stdHTTP "net/http"
-	"tickets/message/command"
 
 	"github.com/ThreeDotsLabs/go-event-driven/v2/common/log"
 	"github.com/ThreeDotsLabs/watermill"
@@ -19,6 +18,7 @@ import (
 	"tickets/db"
 	ticketsHttp "tickets/http"
 	"tickets/message"
+	"tickets/message/command"
 	"tickets/message/event"
 	"tickets/message/outbox"
 )
@@ -47,8 +47,6 @@ func New(
 
 	eventBus := event.NewBus(redisPublisher)
 
-	commandBus := command.NewBus(redisPublisher)
-
 	eventsHandler := event.NewHandler(
 		deadNationAPI,
 		spreadsheetsAPI,
@@ -58,6 +56,8 @@ func New(
 		showsRepo,
 		eventBus,
 	)
+
+	commandBus := command.NewBus(redisPublisher, command.NewBusConfig(watermillLogger))
 
 	postgresSubscriber := outbox.NewPostgresSubscriber(dbConn.DB, watermillLogger)
 	eventProcessorConfig := event.NewProcessorConfig(redisClient, watermillLogger)
