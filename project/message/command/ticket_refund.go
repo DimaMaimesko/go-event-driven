@@ -31,5 +31,13 @@ func (h Handler) RefundTicket(ctx context.Context, ticketRefund *entities.Refund
 		return fmt.Errorf("failed to refund payment: %w", err)
 	}
 
+	err = h.eventBus.Publish(ctx, &entities.TicketRefunded{
+		Header:   entities.NewMessageHeaderWithIdempotencyKey(idempotencyKey),
+		TicketID: ticketRefund.TicketID,
+	})
+	if err != nil {
+		return fmt.Errorf("failed to publish TicketRefunded event: %w", err)
+	}
+
 	return nil
 }
