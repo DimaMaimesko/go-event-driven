@@ -22,6 +22,9 @@ func NewHandler(eventBus *cqrs.EventBus, receiptsServiceClient ReceiptsService, 
 	if receiptsServiceClient == nil {
 		panic("receiptsServiceClient is required")
 	}
+	if paymentsServiceClient == nil {
+		panic("paymentsServiceClient is required")
+	}
 
 	handler := Handler{
 		eventBus:              eventBus,

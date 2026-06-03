@@ -15,6 +15,7 @@ require (
 	github.com/redis/go-redis/v9 v9.8.0
 	github.com/samber/lo v1.50.0
 	github.com/stretchr/testify v1.11.0
+	golang.org/x/net v0.40.0
 	golang.org/x/sync v0.14.0
 )
 
@@ -92,7 +93,6 @@ require (
 	golang.org/x/arch v0.17.0 // indirect
 	golang.org/x/crypto v0.38.0 // indirect
 	golang.org/x/exp v0.0.0-20250506013437-ce4c2cf36ca6 // indirect
-	golang.org/x/net v0.40.0 // indirect
 	golang.org/x/sys v0.35.0 // indirect
 	golang.org/x/text v0.25.0 // indirect
 	golang.org/x/time v0.11.0 // indirect

@@ -43,6 +43,7 @@ func TestComponent(t *testing.T) {
 	spreadsheetsAPI := &adapters.SpreadsheetsAPIStub{}
 	receiptsService := &adapters.ReceiptsServiceStub{IssuedReceipts: map[string]entities.IssueReceiptRequest{}}
 	filesAPI := &adapters.FilesApiStub{}
+	paymentsService := &adapters.PaymentsServiceStub{}
 
 	go func() {
 		svc := service.New(
@@ -52,6 +53,7 @@ func TestComponent(t *testing.T) {
 			spreadsheetsAPI,
 			receiptsService,
 			filesAPI,
+			paymentsService,
 		)
 		assert.NoError(t, svc.Run(ctx))
 	}()

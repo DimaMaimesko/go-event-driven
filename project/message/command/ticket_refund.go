@@ -24,7 +24,7 @@ func (h Handler) RefundTicket(ctx context.Context, ticketRefund *entities.Refund
 
 	err = h.paymentsServiceClient.RefundPayment(ctx, entities.PaymentRefund{
 		TicketID:       ticketRefund.TicketID,
-		RefundReason:   "customer requested refund",
+		RefundReason:   "ticket refunded",
 		IdempotencyKey: idempotencyKey,
 	})
 	if err != nil {

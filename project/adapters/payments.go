@@ -1,12 +1,12 @@
 package adapters
 
 import (
-	"context"
 	"fmt"
 	"net/http"
 
 	"github.com/ThreeDotsLabs/go-event-driven/v2/common/clients"
 	"github.com/ThreeDotsLabs/go-event-driven/v2/common/clients/payments"
+	"golang.org/x/net/context"
 
 	"tickets/entities"
 )
@@ -16,12 +16,12 @@ type PaymentsServiceClient struct {
 	clients *clients.Clients
 }
 
-func NewPaymentsServiceClient(clients *clients.Clients) *PaymentsServiceClient {
+func NewPaymentsServiceClient(clients *clients.Clients) PaymentsServiceClient {
 	if clients == nil {
 		panic("NewPaymentsServiceClient: clients is nil")
 	}
 
-	return &PaymentsServiceClient{clients: clients}
+	return PaymentsServiceClient{clients: clients}
 }
 
 func (c PaymentsServiceClient) RefundPayment(ctx context.Context, refundPayment entities.PaymentRefund) error {
@@ -36,7 +36,7 @@ func (c PaymentsServiceClient) RefundPayment(ctx context.Context, refundPayment 
 	}
 
 	if resp.StatusCode() != http.StatusOK {
-		return fmt.Errorf("unexpected status code for /payments-api/refunds: %d", resp.StatusCode())
+		return fmt.Errorf("unexpected for /payments-api/refunds status code: %d", resp.StatusCode())
 	}
 
 	return nil
