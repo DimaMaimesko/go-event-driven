@@ -23,15 +23,10 @@ func (h Handler) IssueReceipt(ctx context.Context, event *entities.TicketBooking
 		return fmt.Errorf("failed to issue receipt: %w", err)
 	}
 
-	err = h.eventBus.Publish(ctx, entities.TicketReceiptIssued{
-		Header:        entities.NewMessageHeader(),
+	return h.eventBus.Publish(ctx, entities.TicketReceiptIssued{
+		Header:        entities.NewMessageHeaderWithIdempotencyKey(event.Header.IdempotencyKey),
 		TicketID:      event.TicketID,
 		ReceiptNumber: resp.ReceiptNumber,
 		IssuedAt:      resp.IssuedAt,
 	})
-	if err != nil {
-		return fmt.Errorf("failed to publish TicketReceiptIssued event: %w", err)
-	}
-
-	return nil
 }

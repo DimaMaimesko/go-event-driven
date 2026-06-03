@@ -16,6 +16,6 @@ type IssueReceiptRequest struct {
 }
 
 type IssueReceiptResponse struct {
-	ReceiptNumber string
-	IssuedAt      time.Time
+	ReceiptNumber string    `json:"number"`
+	IssuedAt      time.Time `json:"issued_at"`
 }
