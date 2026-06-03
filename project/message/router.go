@@ -1,12 +1,11 @@
 package message
 
 import (
-	"tickets/message/command"
-
 	"github.com/ThreeDotsLabs/watermill"
 	"github.com/ThreeDotsLabs/watermill/components/cqrs"
 	"github.com/ThreeDotsLabs/watermill/message"
 
+	"tickets/message/command"
 	"tickets/message/event"
 	"tickets/message/outbox"
 )
@@ -17,7 +16,7 @@ func NewWatermillRouter(
 	eventProcessorConfig cqrs.EventProcessorConfig,
 	eventHandler event.Handler,
 	commandProcessorConfig cqrs.CommandProcessorConfig,
-	commandHandler command.Handler,
+	commandsHandler command.Handler,
 	watermillLogger watermill.LoggerAdapter,
 ) *message.Router {
 	router := message.NewDefaultRouter(watermillLogger)
@@ -69,8 +68,8 @@ func NewWatermillRouter(
 
 	commandProcessor.AddHandlers(
 		cqrs.NewCommandHandler(
-			"RefundTicket",
-			commandHandler.RefundTicket,
+			"TicketRefund",
+			commandsHandler.RefundTicket,
 		),
 	)
 

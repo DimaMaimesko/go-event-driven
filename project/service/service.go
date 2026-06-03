@@ -5,7 +5,6 @@ import (
 	"errors"
 	"fmt"
 	stdHTTP "net/http"
-	"tickets/adapters"
 
 	"github.com/ThreeDotsLabs/go-event-driven/v2/common/log"
 	"github.com/ThreeDotsLabs/watermill"
@@ -30,12 +29,17 @@ type Service struct {
 	echoRouter      *echo.Echo
 }
 
+type ReceiptService interface {
+	event.ReceiptsService
+	command.ReceiptsService
+}
+
 func New(
 	dbConn *sqlx.DB,
 	redisClient *redis.Client,
 	deadNationAPI event.DeadNationAPI,
 	spreadsheetsAPI event.SpreadsheetsAPI,
-	receiptsService *adapters.ReceiptsServiceClient,
+	receiptsService ReceiptService,
 	filesAPI event.FilesAPI,
 ) Service {
 	ticketsRepo := db.NewTicketsRepository(dbConn)
@@ -58,9 +62,11 @@ func New(
 		eventBus,
 	)
 
+	commandsHandler := command.NewHandler(
+		eventBus,
+		receiptsService,
+	)
 	commandBus := command.NewBus(redisPublisher, command.NewBusConfig(watermillLogger))
-
-	commandsHandler := command.NewHandler(receiptsService)
 
 	postgresSubscriber := outbox.NewPostgresSubscriber(dbConn.DB, watermillLogger)
 	eventProcessorConfig := event.NewProcessorConfig(redisClient, watermillLogger)

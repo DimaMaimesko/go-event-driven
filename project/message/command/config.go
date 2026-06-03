@@ -8,9 +8,21 @@ import (
 	"github.com/redis/go-redis/v9"
 )
 
-func NewBusConfig(watermillLogger watermill.LoggerAdapter) cqrs.CommandBusConfig {
-	return cqrs.CommandBusConfig{
-		GeneratePublishTopic: func(params cqrs.CommandBusGeneratePublishTopicParams) (string, error) {
+func NewProcessorConfig(
+	redisClient *redis.Client,
+	watermillLogger watermill.LoggerAdapter,
+) cqrs.CommandProcessorConfig {
+	return cqrs.CommandProcessorConfig{
+		SubscriberConstructor: func(params cqrs.CommandProcessorSubscriberConstructorParams) (message.Subscriber, error) {
+			return redisstream.NewSubscriber(
+				redisstream.SubscriberConfig{
+					Client:        redisClient,
+					ConsumerGroup: "svc-tickets." + params.HandlerName,
+				},
+				watermillLogger,
+			)
+		},
+		GenerateSubscribeTopic: func(params cqrs.CommandProcessorGenerateSubscribeTopicParams) (string, error) {
 			return params.CommandName, nil
 		},
 		Marshaler: cqrs.JSONMarshaler{
@@ -20,16 +32,10 @@ func NewBusConfig(watermillLogger watermill.LoggerAdapter) cqrs.CommandBusConfig
 	}
 }
 
-func NewProcessorConfig(redisClient *redis.Client, watermillLogger watermill.LoggerAdapter) cqrs.CommandProcessorConfig {
-	return cqrs.CommandProcessorConfig{
-		GenerateSubscribeTopic: func(params cqrs.CommandProcessorGenerateSubscribeTopicParams) (string, error) {
+func NewBusConfig(watermillLogger watermill.LoggerAdapter) cqrs.CommandBusConfig {
+	return cqrs.CommandBusConfig{
+		GeneratePublishTopic: func(params cqrs.CommandBusGeneratePublishTopicParams) (string, error) {
 			return params.CommandName, nil
-		},
-		SubscriberConstructor: func(params cqrs.CommandProcessorSubscriberConstructorParams) (message.Subscriber, error) {
-			return redisstream.NewSubscriber(redisstream.SubscriberConfig{
-				Client:        redisClient,
-				ConsumerGroup: "svc-tickets." + params.HandlerName,
-			}, watermillLogger)
 		},
 		Marshaler: cqrs.JSONMarshaler{
 			GenerateName: cqrs.StructName,
