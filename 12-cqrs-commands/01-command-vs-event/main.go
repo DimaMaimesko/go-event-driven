@@ -9,7 +9,7 @@ import (
 	"github.com/ThreeDotsLabs/watermill/message"
 )
 
-type NotificationShouldBeSent struct {
+type SendNotification struct {
 	NotificationID string
 	Email          string
 	Message        string
@@ -19,14 +19,14 @@ type Sender interface {
 	SendNotification(ctx context.Context, notificationID, email, message string) error
 }
 
-func NewProcessor(router *message.Router, sender Sender, sub message.Subscriber, watermillLogger watermill.LoggerAdapter) *cqrs.EventProcessor {
-	eventProcessor, err := cqrs.NewEventProcessorWithConfig(
+func NewProcessor(router *message.Router, sender Sender, sub message.Subscriber, watermillLogger watermill.LoggerAdapter) *cqrs.CommandProcessor {
+	commandProcessor, err := cqrs.NewCommandProcessorWithConfig(
 		router,
-		cqrs.EventProcessorConfig{
-			GenerateSubscribeTopic: func(params cqrs.EventProcessorGenerateSubscribeTopicParams) (string, error) {
-				return "events", nil
+		cqrs.CommandProcessorConfig{
+			GenerateSubscribeTopic: func(params cqrs.CommandProcessorGenerateSubscribeTopicParams) (string, error) {
+				return "commands", nil
 			},
-			SubscriberConstructor: func(params cqrs.EventProcessorSubscriberConstructorParams) (message.Subscriber, error) {
+			SubscriberConstructor: func(params cqrs.CommandProcessorSubscriberConstructorParams) (message.Subscriber, error) {
 				return sub, nil
 			},
 			Marshaler: cqrs.JSONMarshaler{
@@ -39,16 +39,16 @@ func NewProcessor(router *message.Router, sender Sender, sub message.Subscriber,
 		panic(err)
 	}
 
-	err = eventProcessor.AddHandlers(cqrs.NewEventHandler(
+	err = commandProcessor.AddHandlers(cqrs.NewCommandHandler(
 		"send_notification",
-		func(ctx context.Context, event *NotificationShouldBeSent) error {
-			fmt.Println("Sending notification", event.NotificationID, event.Email, event.Message)
-			return sender.SendNotification(ctx, event.NotificationID, event.Email, event.Message)
+		func(ctx context.Context, command *SendNotification) error {
+			fmt.Println("Sending notification", command.NotificationID, command.Email, command.Message)
+			return sender.SendNotification(ctx, command.NotificationID, command.Email, command.Message)
 		},
 	))
 	if err != nil {
 		panic(err)
 	}
 
-	return eventProcessor
+	return commandProcessor
 }
