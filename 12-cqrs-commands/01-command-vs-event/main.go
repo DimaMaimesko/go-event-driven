@@ -41,9 +41,9 @@ func NewProcessor(router *message.Router, sender Sender, sub message.Subscriber,
 
 	err = commandProcessor.AddHandlers(cqrs.NewCommandHandler(
 		"send_notification",
-		func(ctx context.Context, command *SendNotification) error {
-			fmt.Println("Sending notification", command.NotificationID, command.Email, command.Message)
-			return sender.SendNotification(ctx, command.NotificationID, command.Email, command.Message)
+		func(ctx context.Context, event *SendNotification) error {
+			fmt.Println("Sending notification", event.NotificationID, event.Email, event.Message)
+			return sender.SendNotification(ctx, event.NotificationID, event.Email, event.Message)
 		},
 	))
 	if err != nil {
