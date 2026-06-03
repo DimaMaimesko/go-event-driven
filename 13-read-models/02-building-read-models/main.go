@@ -48,11 +48,14 @@ type InvoiceReadModel struct {
 
 type InvoiceReadModelStorage struct {
 	invoices map[string]InvoiceReadModel
+
+	payments map[string]struct{}
 }
 
 func NewInvoiceReadModelStorage() *InvoiceReadModelStorage {
 	return &InvoiceReadModelStorage{
 		invoices: make(map[string]InvoiceReadModel),
+		payments: make(map[string]struct{}),
 	}
 }
 
@@ -70,38 +73,42 @@ func (s *InvoiceReadModelStorage) InvoiceByID(id string) (InvoiceReadModel, bool
 }
 
 func (s *InvoiceReadModelStorage) OnInvoiceIssued(ctx context.Context, event *InvoiceIssued) error {
-	invoice, exist := s.InvoiceByID(event.InvoiceID)
-	if !exist {
-		invoice = InvoiceReadModel{}
+	if _, ok := s.invoices[event.InvoiceID]; ok {
+		return nil
 	}
-	invoice.InvoiceID = event.InvoiceID
-	invoice.CustomerName = event.CustomerName
-	invoice.Amount = event.Amount
-	invoice.IssuedAt = event.IssuedAt
 
-	s.invoices[event.InvoiceID] = invoice
-
+	s.invoices[event.InvoiceID] = InvoiceReadModel{
+		InvoiceID:    event.InvoiceID,
+		CustomerName: event.CustomerName,
+		Amount:       event.Amount,
+		IssuedAt:     event.IssuedAt,
+	}
 	return nil
 }
 
 func (s *InvoiceReadModelStorage) OnInvoicePaymentReceived(ctx context.Context, event *InvoicePaymentReceived) error {
-	invoice, exist := s.InvoiceByID(event.InvoiceID)
-	if !exist {
+	invoice, ok := s.invoices[event.InvoiceID]
+	if !ok {
 		return fmt.Errorf("invoice %s not found", event.InvoiceID)
 	}
 
+	if _, ok := s.payments[event.PaymentID]; ok {
+		// this payment was already processed
+		return nil
+	}
+	s.payments[event.PaymentID] = struct{}{}
+
+	invoice.FullyPaid = event.FullyPaid
 	invoice.PaidAmount = invoice.PaidAmount.Add(event.PaidAmount)
 	invoice.LastPaymentAt = event.PaidAt
-	invoice.FullyPaid = event.FullyPaid
 
 	s.invoices[event.InvoiceID] = invoice
-
 	return nil
 }
 
 func (s *InvoiceReadModelStorage) OnInvoiceVoided(ctx context.Context, event *InvoiceVoided) error {
-	invoice, exist := s.InvoiceByID(event.InvoiceID)
-	if !exist {
+	invoice, ok := s.invoices[event.InvoiceID]
+	if !ok {
 		return fmt.Errorf("invoice %s not found", event.InvoiceID)
 	}
 
@@ -109,7 +116,6 @@ func (s *InvoiceReadModelStorage) OnInvoiceVoided(ctx context.Context, event *In
 	invoice.VoidedAt = event.VoidedAt
 
 	s.invoices[event.InvoiceID] = invoice
-
 	return nil
 }
 
@@ -122,9 +128,8 @@ func NewRouter(storage *InvoiceReadModelStorage, eventProcessorConfig cqrs.Event
 	}
 
 	err = eventProcessor.AddHandlers(
-		// TODO: add event handlers
 		cqrs.NewEventHandler(
-			"InvoiceIssued",
+			"OnInvoiceIssued",
 			storage.OnInvoiceIssued,
 		),
 		cqrs.NewEventHandler(
