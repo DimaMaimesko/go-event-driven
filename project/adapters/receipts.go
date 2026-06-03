@@ -49,3 +49,20 @@ func (c ReceiptsServiceClient) IssueReceipt(ctx context.Context, request entitie
 		return fmt.Errorf("unexpected status code for POST receipts-api/receipts: %d", resp.StatusCode())
 	}
 }
+
+func (c ReceiptsServiceClient) VoidReceipt(ctx context.Context, request entities.VoidReceipt) error {
+	resp, err := c.clients.Receipts.PutVoidReceiptWithResponse(ctx, receipts.VoidReceiptRequest{
+		TicketId:     request.TicketID,
+		Reason:       "customer requested refund",
+		IdempotentId: &request.IdempotencyKey,
+	})
+	if err != nil {
+		return fmt.Errorf("failed to void receipt: %w", err)
+	}
+
+	if resp.StatusCode() != http.StatusOK {
+		return fmt.Errorf("unexpected status code for PUT receipts-api/void-receipt: %d", resp.StatusCode())
+	}
+
+	return nil
+}
