@@ -19,6 +19,7 @@ type TicketStatusRequest struct {
 	Status        string         `json:"status"`
 	Price         entities.Money `json:"price"`
 	CustomerEmail string         `json:"customer_email"`
+	BookingID     string         `json:"booking_id"`
 }
 
 func (h Handler) PostTicketsStatus(c echo.Context) error {
@@ -41,6 +42,7 @@ func (h Handler) PostTicketsStatus(c echo.Context) error {
 				TicketID:      ticket.TicketID,
 				Price:         ticket.Price,
 				CustomerEmail: ticket.CustomerEmail,
+				BookingID:     ticket.BookingID,
 			}
 
 			if err := h.eventBus.Publish(c.Request().Context(), event); err != nil {
