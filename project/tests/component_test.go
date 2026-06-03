@@ -68,6 +68,7 @@ func TestComponent(t *testing.T) {
 			Currency: "GBP",
 		},
 		CustomerEmail: "email@example.com",
+		BookingID:     uuid.NewString(),
 	}
 
 	idempotencyKey := uuid.NewString()
