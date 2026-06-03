@@ -3,6 +3,7 @@ package adapters
 import (
 	"context"
 	"sync"
+	"time"
 
 	"tickets/entities"
 )
@@ -14,13 +15,16 @@ type ReceiptsServiceStub struct {
 	VoidedReceipts []entities.VoidReceipt
 }
 
-func (c *ReceiptsServiceStub) IssueReceipt(ctx context.Context, request entities.IssueReceiptRequest) error {
+func (c *ReceiptsServiceStub) IssueReceipt(ctx context.Context, request entities.IssueReceiptRequest) (entities.IssueReceiptResponse, error) {
 	c.lock.Lock()
 	defer c.lock.Unlock()
 
 	c.IssuedReceipts[request.TicketID] = request
 
-	return nil
+	return entities.IssueReceiptResponse{
+		ReceiptNumber: "mocked-receipt-number",
+		IssuedAt:      time.Now(),
+	}, nil
 }
 
 func (c *ReceiptsServiceStub) VoidReceipt(ctx context.Context, request entities.VoidReceipt) error {

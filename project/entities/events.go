@@ -58,3 +58,12 @@ type BookingMade struct {
 	CustomerEmail   string        `json:"customer_email"`
 	ShowID          uuid.UUID     `json:"show_id"`
 }
+
+type TicketReceiptIssued struct {
+	Header MessageHeader `json:"header"`
+
+	TicketID      string `json:"ticket_id"`
+	ReceiptNumber string `json:"receipt_number"`
+
+	IssuedAt time.Time `json:"issued_at"`
+}
