@@ -1,7 +1,12 @@
-mermaid flowchart LR
-C1[RefundTicket Command Producer] --> TC[commands.RefundTicket]
-TC --> H1[RefundTicket Command Handler]
-H1 --> E1[events.TicketRefunded]
+### `docs/architecture/topology.md`
+```markdown
+# Messaging Topology
+
+```mermaid
+flowchart LR
+    C1[Command Producer] --> TC[commands.RefundTicket]
+    TC --> H1[RefundTicket Command Handler]
+    H1 --> E1[events.TicketRefunded]
 
     E1 --> EH1[TicketRefundToSheet Handler]
     E1 --> EH2[AppendToTracker Handler]
@@ -13,7 +18,9 @@ H1 --> E1[events.TicketRefunded]
     E3 --> EH7[StoreTickets Handler]
 
     subgraph Reliability
-      OB[Outbox Table/Forwarder]
-      DLQ[Dead Letter Queue / Poison Messages]
+      OB[Outbox]
       RETRY[Retry / Backoff]
+      DLQ[Dead Letter Queue]
     end
+```
+```

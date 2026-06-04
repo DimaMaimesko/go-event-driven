@@ -1,13 +1,18 @@
-mermaid sequenceDiagram
-autonumber
-participant Client
-participant API as Tickets API
-participant CB as Command Bus
-participant CH as RefundTicket Handler
-participant Receipts
-participant Payments
-participant EB as Event Bus
-participant Proj as Refund Projection(s)
+### `docs/flows/refund.md`
+```markdown
+# Refund Flow
+
+```mermaid
+sequenceDiagram
+    autonumber
+    participant Client
+    participant API
+    participant CB as Command Bus
+    participant CH as RefundTicket Handler
+    participant Receipts
+    participant Payments
+    participant EB as Event Bus
+    participant Proj as Refund Projections
 
     Client->>API: POST /tickets/{id}/refund
     API->>CB: Publish RefundTicket(ticket_id, idempotency_key)
@@ -20,3 +25,5 @@ participant Proj as Refund Projection(s)
     EB->>Proj: Deliver TicketRefunded
     Proj-->>EB: ACK
     API-->>Client: 202 Accepted
+```
+```

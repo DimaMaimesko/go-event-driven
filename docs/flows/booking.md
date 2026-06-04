@@ -1,13 +1,18 @@
-mermaid sequenceDiagram
-autonumber
-participant Client
-participant API
-participant EB as Event Bus
-participant H1 as BookPlace Handler
-participant H2 as IssueReceipt Handler
-participant H3 as PrintTicket Handler
-participant H4 as StoreTickets Handler
-participant Ext as External Services
+### `docs/flows/booking.md`
+```markdown
+# Booking Flow
+
+```mermaid
+sequenceDiagram
+    autonumber
+    participant Client
+    participant API
+    participant EB as Event Bus
+    participant H1 as BookPlace Handler
+    participant H2 as IssueReceipt Handler
+    participant H3 as PrintTicket Handler
+    participant H4 as StoreTickets Handler
+    participant Ext as External Services
 
     Client->>API: Book tickets
     API->>EB: Publish BookingMade
@@ -22,3 +27,5 @@ participant Ext as External Services
     H3->>Ext: Generate ticket file
     EB->>H4: TicketBookingConfirmed
     H4->>Ext: Persist/store ticket data
+```
+```
