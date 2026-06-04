@@ -1,4 +1,4 @@
-flowchart LR
+mermaid flowchart LR
 E[Domain Events] --> P1[Projection: Refund Sheet]
 E --> P2[Projection: Tracker/Analytics]
 E --> P3[Projection: Ticket Storage Read Model]

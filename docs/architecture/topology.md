@@ -1,4 +1,4 @@
-flowchart LR
+mermaid flowchart LR
 C1[RefundTicket Command Producer] --> TC[commands.RefundTicket]
 TC --> H1[RefundTicket Command Handler]
 H1 --> E1[events.TicketRefunded]

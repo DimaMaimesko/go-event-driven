@@ -1,4 +1,4 @@
-sequenceDiagram
+mermaid sequenceDiagram
 autonumber
 participant Client
 participant API

@@ -1,4 +1,4 @@
-flowchart LR
+mermaid flowchart LR
 U[Customer / Admin] --> API[Tickets Service API]
 API --> APP[Tickets Service]
 
